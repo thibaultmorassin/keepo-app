@@ -1,10 +1,25 @@
 {
-  "name": "keepo-app",
-  "slug": "keepo-app",
-  "android": {
-    "package": "com.thibaultkriptown.keepoapp"
-  },
-  "ios": {
-    "bundleIdentifier": "com.thibaultkriptown.keepoapp"
+  "expo": {
+    "name": "keepo-app",
+    "slug": "keepo-app",
+    "scheme": "keepo",
+    "experiments": {
+      "typedRoutes": true
+    },
+    "web": {
+      "bundler": "metro"
+    },
+    "android": {
+      "package": "com.thibaultkriptown.keepoapp"
+    },
+    "ios": {
+      "bundleIdentifier": "com.thibaultkriptown.keepoapp"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-status-bar",
+      "expo-splash-screen",
+      "expo-font"
+    ]
   }
 }
