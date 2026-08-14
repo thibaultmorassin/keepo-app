@@ -1,0 +1,74 @@
+<!-- @dsCard group="Components" viewport="700x330" name="Forms" subtitle="Field, SegmentedControl, Switch, OptionRow" -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Keepo · Forms</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="../../ds-card-runtime.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 18px 20px;
+        background: var(--bg-app);
+      }
+      .grp {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      .cap {
+        font-family: var(--font-mono);
+        font-size: 9.5px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+      .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/Keepo-jsx" id="card">
+      ({ Field, SegmentedControl, Switch, OptionRow }) => {
+        const [dur, setDur] = React.useState('2 ans');
+        const [remind, setRemind] = React.useState(true);
+        const [issue, setIssue] = React.useState('cycle');
+        return (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, alignItems: 'start' }}>
+            <div className="grp">
+              <span className="cap">Field</span>
+              <Field label="Nom de l'objet" value="Lave-vaisselle Bosch Serie 6" onChange={() => {}} />
+              <Field label="Prix payé" value="649,00" onChange={() => {}} suffix="€" />
+              <Field label="Décrivez le problème" multiline value="Depuis lundi il s'arrête au bout de 20 minutes et affiche E24." onChange={() => {}} />
+            </div>
+            <div className="grp">
+              <span className="cap">SegmentedControl</span>
+              <SegmentedControl options={['1 an', '2 ans', '3 ans', '5 ans']} value={dur} onChange={setDur} />
+              <span className="cap" style={{ marginTop: 6 }}>Switch</span>
+              <div style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)', borderRadius: 'var(--radius-card)', padding: '12px 16px' }}>
+                <Switch label="Me prévenir avant la fin" description="30 jours avant l'expiration" checked={remind} onChange={setRemind} />
+              </div>
+              <span className="cap" style={{ marginTop: 6 }}>OptionRow</span>
+              <OptionRow label="S'arrête en cours de cycle" selected={issue === 'cycle'} onSelect={() => setIssue('cycle')} />
+              <OptionRow label="Ne s'allume plus" selected={issue === 'dead'} onSelect={() => setIssue('dead')} />
+              <OptionRow label="Fuite ou infiltration" description="Eau au sol, joint abîmé" selected={issue === 'leak'} onSelect={() => setIssue('leak')} />
+            </div>
+          </div>
+        );
+      }
+    </script>
+    <script>
+      KeepoCard(["Field", "SegmentedControl", "Switch", "OptionRow"]);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,146 @@
+<!-- @dsCard group="Keepo app" viewport="1760x1000" name="All screens" subtitle="Every screen at full size — the wireframing sheet" -->
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Keepo · écrans</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="../../ds-card-runtime.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 40px;
+        background: var(--paper-2);
+      }
+      .sheet {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 44px;
+      }
+      .cell {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .cap {
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-secondary);
+      }
+      .phone {
+        width: 402px;
+        height: 820px;
+        border-radius: 46px;
+        overflow: hidden;
+        position: relative;
+        background: var(--bg-app);
+        box-shadow: var(--shadow-lift);
+        flex: none;
+      }
+      .status {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 54px;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 30px 0;
+        font-family: var(--font-sans);
+        font-size: 14px;
+        font-weight: 600;
+        pointer-events: none;
+      }
+      .phone *::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+      }
+      .notch {
+        position: absolute;
+        top: 11px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 108px;
+        height: 30px;
+        border-radius: 999px;
+        background: var(--ink-900);
+        z-index: 6;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script type="text/Keepo-jsx" id="card">
+      ({ HomeScreen, ItemScreen, AddScreen, ClaimScreen, ITEMS }) => {
+        const noop = () => {};
+        const bosch = ITEMS.find((i) => i.id === 'bosch');
+        const filled = { name: 'Lave-vaisselle Bosch Serie 6', price: '649,00', date: '04/09/2024', store: 'Darty Beaugrenelle', cat: 'Électroménager', dur: '2 ans', prefilled: true };
+        const draft = { since: 'Lundi 3 août', to: 'Le vendeur', desc: "Depuis lundi il s'arrête au bout de 20 minutes et affiche E24. J'ai déjà nettoyé le filtre." };
+        const dark = { color: 'var(--paper-0)' };
+
+        const SCREENS = [
+          ['01-home', 'Accueil · tableau de bord', false, <HomeScreen items={ITEMS} filter={null} setFilter={noop} onOpen={noop} onAdd={noop} toast="" />],
+          ['02-item-detail', "Détail de l'objet", false, <ItemScreen item={bosch} onBack={noop} onClaim={noop} />],
+          ['03-add-choice', 'Ajouter · scanner ou saisir', false, <AddScreen step="choice" setStep={noop} scan="idle" setScan={noop} form={filled} setForm={noop} onClose={noop} onSave={noop} />],
+          ['04-add-scan', 'Ajouter · lecture du reçu (Pro)', true, <AddScreen step="scan" setStep={noop} scan="done" setScan={noop} form={filled} setForm={noop} onClose={noop} onSave={noop} />],
+          ['05-add-form', 'Ajouter · vérifier et enregistrer', false, <AddScreen step="form" setStep={noop} scan="idle" setScan={noop} form={filled} setForm={noop} onClose={noop} onSave={noop} />],
+          ['06-claim-issue', 'Réclamation 1 · le problème', false, <ClaimScreen item={bosch} step={1} setStep={noop} issue="S'arrête en cours de cycle" setIssue={noop} tone="Chaleureux" setTone={noop} draft={draft} setDraft={noop} onBack={noop} onSend={noop} />],
+          ['07-claim-detail', 'Réclamation 2 · le récit', false, <ClaimScreen item={bosch} step={2} setStep={noop} issue="S'arrête en cours de cycle" setIssue={noop} tone="Chaleureux" setTone={noop} draft={draft} setDraft={noop} onBack={noop} onSend={noop} />],
+          ['08-claim-message', 'Réclamation 3 · le message', false, <ClaimScreen item={bosch} step={3} setStep={noop} issue="S'arrête en cours de cycle" setIssue={noop} tone="Chaleureux" setTone={noop} draft={draft} setDraft={noop} onBack={noop} onSend={noop} />],
+        ];
+
+        return (
+          <div className="sheet">
+            {SCREENS.map(([id, label, onDark, node]) => (
+              <div className="cell" key={id}>
+                <span className="cap">{id} · {label}</span>
+                <div className="phone" id={id}>
+                  <div className="notch"></div>
+                  <div className="status" style={onDark ? dark : null}><span>9:41</span><span>􀙇 􀛨</span></div>
+                  <div style={{ height: '100%' }}>{node}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      }
+    </script>
+    <script>
+      KeepoCard(
+        [
+          "../../components/core/Button",
+          "../../components/core/IconButton",
+          "../../components/core/Badge",
+          "../../components/core/Chip",
+          "../../components/core/Card",
+          "../../components/core/Icon",
+          "../../components/forms/Field",
+          "../../components/forms/SegmentedControl",
+          "../../components/forms/Switch",
+          "../../components/forms/OptionRow",
+          "../../components/data/ItemRow",
+          "../../components/data/CoverageBar",
+          "../../components/data/StatTile",
+          "../../components/data/DocumentRow",
+          "../../components/feedback/Toast",
+          "../../components/feedback/StepBar",
+          "../../components/feedback/EmptyState",
+          "HomeScreen",
+          "ItemScreen",
+          "AddScreen",
+          "ClaimScreen",
+        ],
+        { prelude: ["data"], extra: ["ITEMS"] },
+      );
+    </script>
+  </body>
+</html>

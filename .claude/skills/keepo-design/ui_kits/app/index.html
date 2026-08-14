@@ -1,0 +1,149 @@
+<!-- @dsCard group="Keepo app" viewport="1180x900" name="Warranty app" subtitle="Click-through: list → item → claim, plus add via receipt scan" -->
+<!-- @startingPoint section="Keepo app" subtitle="Full warranty app click-through" viewport="1180x900" -->
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <title>Keepo · application</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="../../ds-card-runtime.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 40px;
+        background: var(--paper-2);
+      }
+      .stage {
+        display: flex;
+        gap: 40px;
+        align-items: flex-start;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      .phone {
+        width: 402px;
+        height: 820px;
+        border-radius: 46px;
+        overflow: hidden;
+        position: relative;
+        background: var(--bg-app);
+        box-shadow: var(--shadow-lift);
+        flex: none;
+      }
+      .status {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 54px;
+        z-index: 5;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 30px 0;
+        font-family: var(--font-sans);
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--text-primary);
+        pointer-events: none;
+      }
+      .notch {
+        position: absolute;
+        top: 11px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 108px;
+        height: 30px;
+        border-radius: 999px;
+        background: var(--ink-900);
+        z-index: 6;
+      }
+      .note {
+        max-width: 300px;
+        font-family: var(--font-sans);
+        color: var(--text-secondary);
+        font-size: 14px;
+      }
+      .note h1 {
+        font-family: var(--font-display);
+        font-size: 30px;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+      }
+      .note code {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--brand-strong);
+      }
+      .note ul {
+        padding-left: 18px;
+        margin: 12px 0 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="stage">
+      <div class="note">
+        <h1>Keepo</h1>
+        <p>
+          The warranty app, assembled entirely from Keepo components — no
+          bespoke markup for rows, chips, bars or buttons.
+        </p>
+        <ul>
+          <li>Tap the amber alert or any row → item detail</li>
+          <li><code>Ajouter</code> → scan a receipt (Pro OCR) or type it in</li>
+          <li>
+            <code>Déclarer un problème</code> → 3-step claim, tone switcher on
+            the draft
+          </li>
+        </ul>
+      </div>
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="status"><span>9:41</span><span>􀙇 􀛨</span></div>
+        <div id="root" style="height: 100%"></div>
+      </div>
+    </div>
+
+    <script type="text/Keepo-jsx" id="card">
+      ({ App }) => <App />
+    </script>
+    <script>
+      KeepoCard(
+        [
+          "../../components/core/Button",
+          "../../components/core/IconButton",
+          "../../components/core/Badge",
+          "../../components/core/Chip",
+          "../../components/core/Card",
+          "../../components/core/Icon",
+          "../../components/forms/Field",
+          "../../components/forms/SegmentedControl",
+          "../../components/forms/Switch",
+          "../../components/forms/OptionRow",
+          "../../components/data/ItemRow",
+          "../../components/data/CoverageBar",
+          "../../components/data/StatTile",
+          "../../components/data/DocumentRow",
+          "../../components/feedback/Toast",
+          "../../components/feedback/StepBar",
+          "../../components/feedback/EmptyState",
+          "HomeScreen",
+          "ItemScreen",
+          "AddScreen",
+          "ClaimScreen",
+          "App",
+        ],
+        { prelude: ["data"] },
+      );
+    </script>
+  </body>
+</html>

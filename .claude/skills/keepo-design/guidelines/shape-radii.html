@@ -1,0 +1,20 @@
+<!-- @dsCard group="Spacing" viewport="700x160" name="Radii" subtitle="Pill for anything tappable, 22 for cards, 28 for the hero" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 18px 20px; background: var(--bg-app); font-family: var(--font-sans); }
+  .row { display: flex; gap: 10px; align-items: stretch; }
+  .sw { flex: 1; border-radius: var(--radius-tile); padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between; min-height: 86px; box-sizing: border-box; }
+  .sw b { font-family: var(--font-display); font-size: 13px; font-weight: 700; letter-spacing: -0.01em; }
+  .sw code { font-family: var(--font-mono); font-size: 10.5px; opacity: 0.8; }
+  .r{flex:1;height:78px;background:var(--bg-card);box-shadow:var(--shadow-sm);display:grid;place-items:end center;padding-bottom:8px;font-family:var(--font-mono);font-size:10px;color:var(--text-secondary)}
+</style></head><body>
+
+<div class="row">
+  <div class="r" style="border-radius:14px">input · 14</div>
+  <div class="r" style="border-radius:16px">tile · 16</div>
+  <div class="r" style="border-radius:22px">card · 22</div>
+  <div class="r" style="border-radius:28px">hero · 28</div>
+  <div class="r" style="border-radius:999px">pill · 999</div>
+</div></body></html>

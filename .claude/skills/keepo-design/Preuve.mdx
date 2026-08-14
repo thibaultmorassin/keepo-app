@@ -1,0 +1,484 @@
+---
+title: Keepo — Design System & Build Spec
+product: Keepo (warranty keeper, mobile)
+locale: fr-FR
+platform: iOS-first, 402×874pt reference viewport
+version: 1.0
+status: Design complete. No engineering has started.
+---
+
+# Keepo — build spec
+
+Everything a coding agent needs to build the Keepo warranty app. Read this file top to
+bottom; the reference implementation lives beside it.
+
+| What                                  | Where                                         |
+| ------------------------------------- | --------------------------------------------- |
+| Design tokens (CSS custom properties) | `tokens/*.css`, entry `styles.css`            |
+| Component implementations (React)     | `components/{core,forms,data,feedback}/*.jsx` |
+| Component contracts                   | `components/**/*.d.ts`                        |
+| Per-component usage notes             | `components/**/*.prompt.md`                   |
+| Working app (click-through)           | `ui_kits/app/index.html`                      |
+| Screen source                         | `ui_kits/app/{Home,Item,Add,Claim}Screen.jsx` |
+| Fixture data                          | `ui_kits/app/data.jsx`                        |
+| Screen PNGs (804×1640 @2x)            | `wireframes/01-…` through `08-…`              |
+| Full design rationale                 | `readme.md`                                   |
+
+The reference implementation is **React with inline styles**, deliberately: it maps 1:1 to
+SwiftUI/Compose/React Native without a CSS build step in the way. Read the `.jsx` files as
+layout specifications, not as code to ship.
+
+---
+
+## 1. Product model
+
+A user records every item they buy that carries a warranty. The app tracks the clock and,
+when something breaks, drafts the claim.
+
+### Entities
+
+```ts
+type WarrantyKind = "Vendeur" | "Constructeur"; // seller vs. manufacturer
+type Category =
+  | "Électroménager"
+  | "Électronique"
+  | "Informatique"
+  | "Jardin"
+  | "Mobilité"
+  | "Audio";
+
+interface Item {
+  id: string;
+  name: string; // "Lave-vaisselle Bosch Serie 6"
+  category: Category;
+  icon: string; // Lucide icon name for the category
+  store: string; // "Darty Beaugrenelle"
+  price: number; // cents, displayed as "649 €"
+  purchasedAt: string; // ISO date
+  expiresAt: string; // ISO date — derived from duration at entry, then editable
+  durationMonths: number; // 12 | 24 | 36 | 60
+  warrantyKind: WarrantyKind;
+  serial?: string;
+  documents: Document[];
+  remindBeforeDays: number | null; // default 30, null = no reminder
+}
+
+interface Document {
+  id: string;
+  itemId: string;
+  name: string; // "Recu_Bosch_Serie6.pdf"
+  mime: string;
+  bytes: number;
+  addedAt: string;
+  role: "receipt" | "manual" | "photo";
+}
+
+interface Claim {
+  id: string;
+  itemId: string;
+  issueGroup: "Panne" | "Dommage accidentel" | "Livraison ou pièce";
+  issue: string; // one of the group's options
+  since: string; // free text, "Lundi 3 août"
+  description: string;
+  recipient: "Le vendeur" | "Le fabricant";
+  tone: "Chaleureux" | "Neutre" | "Ferme";
+  photos: string[];
+  message: string; // generated, user-editable before send
+  sentAt?: string;
+  followUpAt?: string; // sentAt + 7 days
+}
+```
+
+### Derived status — the single most important rule
+
+Every visual decision keys off this function. Implement it once, in one place.
+
+```ts
+type Status = "covered" | "expiring" | "expired";
+
+function statusOf(item: Item, now = new Date()): Status {
+  const days = daysBetween(now, item.expiresAt);
+  if (days < 0) return "expired";
+  return days <= 45 ? "expiring" : "covered";
+}
+
+function remainingLabel(item: Item, now = new Date()): string {
+  const days = daysBetween(now, item.expiresAt);
+  if (days < 0) return "Expirée";
+  return days <= 45 ? `${days} j` : `${Math.round(days / 30)} mois`;
+}
+
+/** Percent of the warranty period ELAPSED. A full bar means act now. */
+function elapsedPct(item: Item, now = new Date()): number {
+  const total = daysBetween(item.purchasedAt, item.expiresAt);
+  const gone = daysBetween(item.purchasedAt, now);
+  return clamp(Math.round((gone / total) * 100), 0, 100);
+}
+```
+
+**45 days is the expiring threshold** and **30 days is the default reminder lead**. Both are
+product constants — put them in config, not inline.
+
+### Paid tier
+
+Exactly one feature is gated: **OCR receipt scanning**. Everything else — unlimited items,
+documents, claims, reminders — is free. The gate is marked with a single violet `Pro`
+badge on the scan entry point and on the camera screen. No paywall interstitial, no
+upsell elsewhere. Free users tapping _Scanner le reçu_ should hit the upgrade sheet
+(not yet designed — ask before building it).
+
+---
+
+## 2. Design tokens
+
+Link `styles.css`; it imports all seven token files. Never hardcode a hex, a radius, or a
+duration in product code.
+
+### Colour
+
+The palette is a **status system before it is a palette**. Pick a status name; the token
+picks the colour.
+
+```css
+/* Paper — the canvas is warm, never pure white */
+--paper-0: #fcfaf6; /* app background */
+--paper-1: #ffffff; /* cards only */
+--paper-2: #f2eee5; /* sunken groupings */
+--paper-3: #e8e3d7;
+
+/* Ink — warm greys, never blue-black */
+--ink-900: #1b1a17;
+--ink-700: #45423b;
+--ink-500: #706b60;
+--ink-300: #a8a296;
+--ink-100: #d9d4c8;
+--line: #e6e1d5;
+
+/* Covered — also the brand colour: coverage IS the product */
+--green-700: #0a5c41;
+--green-600: #0e7a56;
+--green-500: #14996b;
+--green-200: #c4e9d6;
+--green-100: #e5f5ec;
+
+/* Expiring soon */
+--amber-700: #8f5207;
+--amber-600: #b4680a;
+--amber-500: #e08a12;
+--amber-200: #fae0b4;
+--amber-100: #fdf2de;
+
+/* A problem — claims, breakage, destructive */
+--coral-700: #a62f1f;
+--coral-600: #d0402c;
+--coral-200: #f9d6cd;
+--coral-100: #fcebe6;
+
+/* Pro — paid/OCR affordances ONLY */
+--ultra-600: #4b49c8;
+--ultra-200: #d9d8fa;
+--ultra-100: #edecfd;
+```
+
+**Status pairs.** Each state is one tint + one foreground, applied to the icon tile _and_
+the remaining-time pill on the same row so they read as one signal.
+
+| Status       | Background    | Foreground    | Progress bar        |
+| ------------ | ------------- | ------------- | ------------------- |
+| `covered`    | `--green-100` | `--green-700` | `--green-500`       |
+| `expiring`   | `--amber-100` | `--amber-700` | `--amber-500`       |
+| `expired`    | `--paper-2`   | `--ink-500`   | `--ink-300`         |
+| claim action | `--coral-100` | `--coral-700` | solid `--coral-600` |
+| Pro          | `--ultra-100` | `--ultra-600` | —                   |
+
+**Two colours are single-purpose and must not spread.** Coral appears only on claims and
+destructive actions. Ultra violet appears only on Pro/OCR affordances. If either shows up
+anywhere else, that is a bug.
+
+**One accent surface per screen.** At most one green hero card. Two greens on a screen and
+the hierarchy collapses.
+
+### Typography
+
+Three families, three jobs. All from Google Fonts (`tokens/fonts.css`) — **substitutions,
+because no licensed binaries were supplied.**
+
+| Family                  | Used for                                                                     | Rule                                                               |
+| ----------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| **Bricolage Grotesque** | Numbers, screen titles, item names                                           | Never below weight 600; tracking −0.01 to −0.03em                  |
+| **Instrument Sans**     | Anything that is a sentence                                                  | 400/500/600                                                        |
+| **DM Mono**             | Anything copied off a physical document — serials, file sizes, numeric dates | The mono is a _signal_: "this came from your receipt, not from us" |
+
+```css
+--type-hero-size: 44px;    /* 5 294 € */          weight 700, ls −0.03em, lh 1.0
+--type-display-size: 30px; /* Vos garanties */     weight 700, ls −0.02em, lh 1.08
+--type-title-size: 22px;   /* screen questions */  weight 600, ls −0.015em
+--type-heading-size: 17px; /* item names */        weight 600, ls −0.01em
+--type-body-lg-size: 16px; --type-body-size: 14.5px;
+--type-label-size: 13px;   --type-caption-size: 12px;
+--type-micro-size: 10.5px; /* UPPERCASE eyebrow */ weight 700, ls 0.1em
+--type-mono-size: 12.5px;
+```
+
+**Every screen opens the same way:** micro eyebrow (uppercase, tracked) → display title →
+optional body line. See `wireframes/01-home.png`.
+
+### Spacing, shape, motion
+
+```css
+--gutter-screen: 18px; /* left/right padding of every screen */
+--gap-list: 9px; /* between sibling rows */
+--gap-section: 18px; /* between blocks */
+--pad-card: 16px;
+--pad-card-lg: 20px;
+--tap-min: 44px;
+
+--radius-pill: 999px; /* ANYTHING tappable */
+--radius-hero: 28px;
+--radius-card: 22px;
+--radius-tile: 16px;
+--radius-input: 14px;
+/* No square corners anywhere in the product. */
+
+--shadow-sm: 0 1px 2px rgba(31, 26, 16, 0.05); /* list rows */
+--shadow-card:
+  0 1px 2px rgba(31, 26, 16, 0.05), 0 8px 20px -10px rgba(31, 26, 16, 0.16); /* primary CTA, hero */
+--shadow-lift:
+  0 2px 4px rgba(31, 26, 16, 0.06), 0 18px 34px -14px rgba(31, 26, 16, 0.24); /* toast, tab bar */
+/* Shadows are warm-tinted — never neutral grey. Nothing else floats. */
+
+--dur-fast: 140ms; /* presses, chips */
+--dur-base: 220ms; /* toggles, sheets */
+--dur-slow: 340ms; /* coverage bar filling */
+--ease-out: cubic-bezier(0.2, 0.8, 0.3, 1);
+--ease-spring: cubic-bezier(
+  0.34,
+  1.4,
+  0.5,
+  1
+); /* ONLY button press + switch knob */
+--press-scale: 0.97;
+```
+
+All durations collapse to `0ms` under `prefers-reduced-motion` — already handled in
+`tokens/motion.css`; mirror it on native.
+
+### Backgrounds and transparency
+
+Flat colour. **No decorative gradients.** The only gradients are functional _protection
+gradients_ behind sticky bottom CTAs:
+
+```css
+background: linear-gradient(to top, var(--bg-app) 62%, transparent);
+```
+
+The one decorative motif: a large translucent circle bleeding off the corner of the green
+hero card, `rgba(252,250,246,0.12)`. Translucent white (`0.16–0.22`) is used **only** over
+the brand green or the camera view. No backdrop blur.
+
+### Iconography
+
+**Lucide at 2.25 stroke.** 17–24px inline, 20–34px inside tiles. Monochrome, inherits
+`currentColor`, never carries its own colour — an icon inside a status tile takes that
+status's foreground. Never hand-draw an SVG path in product code. No emoji, ever.
+
+Working set: `shield-check` `receipt` `scan-line` `bell-ring` `triangle-alert` `zap-off`
+`package` `download` `paperclip` `plus` `pencil` `chevron-left` `chevron-right` `ellipsis`
+`x` `check` `lock` `layout-grid` `settings`, plus one glyph per category (`smartphone`,
+`laptop`, `washing-machine`, `headphones`, `bike`, `trees`, `coffee`).
+
+**This is a substitution** — swap it if a real icon set exists.
+
+---
+
+## 3. Components
+
+Seventeen components, four groups. Each has a `.d.ts` contract and a `.prompt.md` note
+next to its `.jsx`.
+
+### Core
+
+| Component    | Contract                                                                                                                      | Notes                                                                                                                                           |
+| ------------ | ----------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Button`     | `variant: primary \| secondary \| ghost \| claim \| inverse`, `size: sm \| md \| lg`, `icon`, `iconAfter`, `full`, `disabled` | One `primary` per screen. `claim` **only** for starting a claim. `lg` + `full` is the sticky bottom CTA. Presses scale to 0.97 and spring back. |
+| `IconButton` | `label` (required), `variant: surface \| ghost \| brand \| inverse`, `size: sm \| md`                                         | 42px (34 for `sm`). `inverse` over camera/brand surfaces.                                                                                       |
+| `Badge`      | `status: covered \| expiring \| expired \| claim \| pro \| inverse`, `icon`                                                   | Pick the status, never the colour.                                                                                                              |
+| `Chip`       | `selected`, `tone: brand \| neutral`                                                                                          | Unselected = hairline outline, never filled grey. `neutral` for the home filter row.                                                            |
+| `Card`       | `tone: plain \| sunken \| brand \| tint \| inverse \| outline`, `size: card \| hero`, `pad`                                   | The surface primitive. Max one `brand` per screen.                                                                                              |
+| `Icon`       | `name` (Lucide, kebab-case), `size`, `strokeWidth`, `color`                                                                   | Exists so "never hand-draw an SVG" is enforceable in one line.                                                                                  |
+
+### Forms
+
+| Component          | Contract                                                                   | Notes                                                                                                                                                                                     |
+| ------------------ | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Field`            | `label`, `value`, `onChange`, `placeholder`, `hint`, `multiline`, `suffix` | **Never a floating label** — labels stay visible so a half-filled form is still readable. Placeholders show a realistic example (`Darty Beaugrenelle`), never a restatement of the label. |
+| `SegmentedControl` | `options: string[]`, `value`, `onChange`                                   | 2–4 short exclusive options. Five or more → wrapping `Chip` row.                                                                                                                          |
+| `Switch`           | `checked`, `onChange`, `label`, `description`                              | With `label`, renders a full settings row.                                                                                                                                                |
+| `OptionRow`        | `label`, `description`, `selected`, `onSelect`                             | Full-width radio, pill, ≥44px. Selection tints the whole row green.                                                                                                                       |
+
+### Data
+
+| Component     | Contract                                                        | Notes                                                                                                                     |
+| ------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `ItemRow`     | `name`, `meta`, `status`, `remaining`, `icon`, `onClick`        | The core list row. `meta` is always `"{store} · {purchase month}"`. Icon tile and remaining pill share one status colour. |
+| `CoverageBar` | `pct` (**elapsed**), `status`, `headline`, `note`, `from`, `to` | Fills over `--dur-slow`. Endpoints in mono.                                                                               |
+| `StatTile`    | `value`, `label`, `tone`                                        | `onBrand` is translucent, designed to sit inside `Card tone="brand"`.                                                     |
+| `DocumentRow` | `name`, `meta`, `tone`, `action`                                | Thumbnail is an **abstract paper sliver** — never a fake scanned image.                                                   |
+
+### Feedback
+
+| Component    | Contract                                                          | Notes                                                                                                |
+| ------------ | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `Toast`      | `message`, `tone: success \| neutral \| warning \| error`, `icon` | Auto-dismiss 2.6s. Say what happened AND what happens next. Never for an error the user must act on. |
+| `StepBar`    | `total`, `current`                                                | Always pair with an "étape 2 sur 3" micro label — the bar alone is not enough.                       |
+| `EmptyState` | `title`, `body`, `icon`, `action`                                 | Always pass an `action`. Never a dead end.                                                           |
+
+### Not in this system
+
+No Tabs, Dialog, Tooltip, Avatar, Table or Accordion. The app has no use for them yet.
+Add them when a screen needs one, not before.
+
+---
+
+## 4. Screens
+
+Reference PNGs are 804×1640 (2× of 402×820). Source in `ui_kits/app/`.
+
+### 01 · Home — coverage dashboard `wireframes/01-home.png`
+
+Scroll container, 62px top / 132px bottom padding, `box-sizing: border-box`.
+
+1. **Header** — eyebrow (today's date, `VENDREDI 7 AOÛT`) → `Vos garanties` (display 30) → 42px avatar circle, `--brand-tint` ground, initials in display type.
+2. **Hero** — `Card tone="brand" size="hero"`, translucent circle bleeding off the top-right. Eyebrow `VALEUR ENCORE COUVERTE` → total in hero type (44px) → one-line summary → three `StatTile`s (couverts / bientôt / expirée).
+3. **Expiring alert** — amber card, only rendered when an item is `expiring`. `bell-ring` in an `--amber-200` circle, headline `"{name} — plus que {n} jours"`, sub `"Dernier moment pour déclarer un souci"`, chevron. Taps into that item.
+4. **Filter row** — `Chip tone="neutral"`: Tous / Couverts / Bientôt / Expirés. Horizontally scrollable, bleeds to the screen edge with negative margin + matching padding.
+5. **List** — `ItemRow` per item, 9px gaps.
+6. **Floating tab bar** — pinned bottom, ink pill, `--shadow-lift`. Three icons (`layout-grid` active, `shield-check`, `settings`) + the `Ajouter` primary button inside the pill. Content scrolls under it behind a protection gradient.
+7. **Toast** — appears above the tab bar when returning from save/send.
+
+### 02 · Item detail `wireframes/02-item-detail.png`
+
+1. Back / overflow `IconButton` row.
+2. 78px circular status tile + item name (title 22) + `"{store} · {date}"`.
+3. `Card` wrapping `CoverageBar` — headline is status-dependent: `Sous garantie · 7 mois` / `Plus que 28 jours` / `Garantie terminée`.
+4. **Three quick actions**, equal width: Reçu, Notice, **Déclarer** (coral tile, coral ground — the odd one out on purpose).
+5. Spec rows — Catégorie, Prix payé, Magasin, N° de série (**mono**), Garantie (`"2 ans · Vendeur"`). Hairline dividers, no divider after the last.
+6. Documents — `DocumentRow` with a download action.
+7. Sticky `Button variant="claim" size="lg" full`: **Déclarer un problème**.
+
+### 03 · Add — choose a path `wireframes/03-add-choice.png`
+
+Close button → `Nouvel objet` → _"Le mieux, c'est de le faire dans le magasin, ticket encore en main."_
+
+- **Scan (Pro)** — green hero card, `scan-line` icon, inverse `Pro` badge with a lock.
+- **Manual** — white card, `pencil` icon, _"Six champs, une minute."_
+- **Email forward** — dashed hairline row, `recu@Keepo.app`.
+
+### 04 · Add — OCR scan `wireframes/04-add-scan.png`
+
+The only dark screen. Diagonal-stripe camera ground, a stylised receipt (built from type
+and rules — **not** a fake photo) rotated −1.2°, green capture frame.
+
+Three states on one screen:
+
+- `idle` → CTA _Prendre la photo_
+- `busy` → a green scan line at the frame top, glowing; CTA _Analyse en cours…_ (simulate ~1.4s)
+- `done` → four green result chips (store / date / total / duration); CTA _Utiliser ces informations_
+
+Status bar text flips to `--paper-0` here. On confirm, prefill the form and jump to 05.
+
+### 05 · Add — verify and save `wireframes/05-add-form.png`
+
+Green confirmation strip when prefilled: _"Rempli depuis le reçu. Corrigez ce qui cloche."_
+Then one card holding: name, category `Chip`s, price (mono `€` suffix) + date side by side,
+store, duration `SegmentedControl`. Below: attached receipt `DocumentRow` with _Remplacer_,
+and a tinted reminder `Switch` (default on, 30 days). Sticky _Enregistrer l'objet_.
+
+On save → home + toast _"Objet ajouté — rappel dans 700 jours"_ (compute the real number).
+
+### 06–08 · Claim, three steps
+
+Persistent header: back, eyebrow `RÉCLAMATION · ÉTAPE n SUR 3`, item name, `StepBar`.
+The scroll area is absolutely positioned below it (`top: 132px`) so the header never moves.
+
+**Step 1 — the problem** `wireframes/06-claim-issue.png`
+Three sunken group cards (Panne / Dommage accidentel / Livraison ou pièce), each with an
+icon and its `OptionRow` list. CTA disabled until one is picked.
+
+**Step 2 — the story** `wireframes/07-claim-detail.png`
+Green badge echoing the chosen issue. Fields: _Depuis quand ?_, multiline description,
+recipient `SegmentedControl` (Le vendeur / Le fabricant). Photo row: one dashed add tile
+plus attached photos.
+
+**Step 3 — the message** `wireframes/08-claim-message.png`
+Tone `SegmentedControl` (Chaleureux / Neutre / Ferme) → the draft in a card with a mono
+`À :` header, receipt auto-attached (tinted `DocumentRow`), and a footnote:
+_"On garde une copie dans l'app et on vous relance dans 7 jours sans réponse."_
+Footer: copy `IconButton` + `Button variant="claim"` **Envoyer avec le reçu**.
+
+### Not designed yet
+
+Claims tracker, search, settings, onboarding, upgrade sheet, empty state in situ.
+**Ask before building these** — the brief scoped five screens.
+
+---
+
+## 5. Copy rules
+
+The app speaks **French**, vouvoiement, practical helper — not a friend, not a lawyer.
+
+- **Person:** _"on"_ for the app, _"vous"_ for the user. Never _"nous"_, never _"je"_.
+- **Casing:** sentence case everywhere. The _only_ uppercase is the tracked micro eyebrow. Buttons are `Enregistrer l'objet`, never `ENREGISTRER`.
+- **Length:** titles under five words, body under twenty. A sentence needing a comma splice is two sentences.
+- **Say the consequence, not the mechanic:** `Objet ajouté — rappel dans 700 jours`, not `Enregistré`. `Dernier moment pour déclarer un souci`, not `Garantie bientôt expirée`.
+- **Numbers are content** — they get display type. French conventions: thin-space thousands (`5 294 €`), comma decimal (`649,00`), `€` after the number, lowercase abbreviated months (`4 sept. 2024`).
+- **Never:** emoji, exclamation marks outside a sign-off, "Oups", gamification, streaks, congratulation. Losing a receipt is annoying; the app stays calm.
+
+### Generated claim messages
+
+Tone is a **user choice**, not a house voice. Three registers, same facts. Full text in
+`ui_kits/app/data.jsx` → `MESSAGES`.
+
+- **Chaleureux** (default) — friendly, offers to come by the shop.
+- **Neutre** — factual, procedural.
+- **Ferme** — the _only_ register that cites `articles L.217-3 et suivants du code de la consommation` and sets an 8-day deadline.
+
+Every message includes: product, purchase date, store, symptom, warranty end date,
+attached receipt, name + phone. Generate it; let the user edit before sending.
+
+---
+
+## 6. Engineering notes
+
+**Status is derived, never stored.** Recompute on read. An item whose warranty lapsed
+overnight must render `expired` the next morning with no write.
+
+**Dates are the whole product** — be pedantic. Store ISO, display French. `expiresAt` is
+derived from `durationMonths` at entry but stays independently editable, because extended
+warranties and gift receipts don't follow the math.
+
+**Reminders** are local notifications at `expiresAt − remindBeforeDays` (default 30).
+Re-schedule when `expiresAt` changes. The claim follow-up nudge fires at `sentAt + 7d`.
+
+**OCR** should return a partial `Item` and confidence per field. Anything low-confidence
+still renders in the form — the user is verifying, not proofreading. Never auto-save an
+OCR result.
+
+**Documents are user property.** Store originals unmodified, never recompress a receipt,
+and make export trivial. The receipt is the entire point of the app.
+
+**Offline first.** Adding an item in a shop with no signal is the primary use case.
+
+**Accessibility.** 44px minimum targets (already in the components). Status is never
+communicated by colour alone — every status pill carries text (`28 j`, `Expirée`). Focus is
+a 3px `--green-200` ring. Respect `prefers-reduced-motion`.
+
+---
+
+## 7. Open questions — ask before you build
+
+1. **No logo, no brand fonts.** Nothing was drawn; the wordmark is a typographic placeholder and all three families are Google Fonts stand-ins. Real assets = a one-file change.
+2. **Icons are Lucide from CDN** — a substitution, not a decision.
+3. **Extended warranties, gift receipts, multi-item receipts** — no data model yet.
+4. **The upgrade sheet** free users hit when tapping _Scanner le reçu_ — not designed.
+5. **The five unbuilt screens** listed in §4.

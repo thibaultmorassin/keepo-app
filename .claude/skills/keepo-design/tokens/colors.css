@@ -1,0 +1,81 @@
+:root {
+  /* ── Paper: the app never sits on pure white ───────────────── */
+  --paper-0: #FCFAF6;
+  --paper-1: #FFFFFF;
+  --paper-2: #F2EEE5;
+  --paper-3: #E8E3D7;
+
+  /* ── Ink: warm greys, never blue-black ─────────────────────── */
+  --ink-900: #1B1A17;
+  --ink-700: #45423B;
+  --ink-500: #706B60;
+  --ink-300: #A8A296;
+  --ink-100: #D9D4C8;
+  --line: #E6E1D5;
+
+  /* ── Covered. Also the brand colour: coverage IS the product ─ */
+  --green-700: #0A5C41;
+  --green-600: #0E7A56;
+  --green-500: #14996B;
+  --green-200: #C4E9D6;
+  --green-100: #E5F5EC;
+
+  /* ── Expiring soon ─────────────────────────────────────────── */
+  --amber-700: #8F5207;
+  --amber-600: #B4680A;
+  --amber-500: #E08A12;
+  --amber-200: #FAE0B4;
+  --amber-100: #FDF2DE;
+
+  /* ── A problem: claims, breakage, destructive ──────────────── */
+  --coral-700: #A62F1F;
+  --coral-600: #D0402C;
+  --coral-200: #F9D6CD;
+  --coral-100: #FCEBE6;
+
+  /* ── Pro. Reserved for paid/OCR affordances, nothing else ──── */
+  --ultra-600: #4B49C8;
+  --ultra-200: #D9D8FA;
+  --ultra-100: #EDECFD;
+
+  /* ── Semantic aliases: prefer these in product code ────────── */
+  --bg-app: var(--paper-0);
+  --bg-card: var(--paper-1);
+  --bg-sunken: var(--paper-2);
+  --bg-inverse: var(--ink-900);
+
+  --text-primary: var(--ink-900);
+  --text-secondary: var(--ink-500);
+  --text-muted: var(--ink-300);
+  --text-on-dark: var(--paper-0);
+  --text-link: var(--green-600);
+  --text-link-hover: var(--green-700);
+
+  --border-subtle: var(--line);
+  --border-strong: var(--ink-100);
+
+  --brand: var(--green-600);
+  --brand-strong: var(--green-700);
+  --brand-tint: var(--green-100);
+
+  --status-covered-fg: var(--green-700);
+  --status-covered-bg: var(--green-100);
+  --status-covered-bar: var(--green-500);
+
+  --status-expiring-fg: var(--amber-700);
+  --status-expiring-bg: var(--amber-100);
+  --status-expiring-bar: var(--amber-500);
+
+  --status-expired-fg: var(--ink-500);
+  --status-expired-bg: var(--paper-2);
+  --status-expired-bar: var(--ink-300);
+
+  --action-claim-fg: var(--coral-700);
+  --action-claim-bg: var(--coral-100);
+  --action-claim-solid: var(--coral-600);
+
+  --accent-pro-fg: var(--ultra-600);
+  --accent-pro-bg: var(--ultra-100);
+
+  --focus-ring: 0 0 0 3px var(--green-200);
+}

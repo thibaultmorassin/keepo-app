@@ -1,0 +1,21 @@
+<!-- @dsCard group="Spacing" viewport="700x150" name="Motion" subtitle="Fast easing out; a single spring reserved for press and toggles" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="stylesheet" href="../styles.css">
+<style>
+  body { margin: 0; padding: 18px 20px; background: var(--bg-app); font-family: var(--font-sans); }
+  .row { display: flex; gap: 10px; align-items: stretch; }
+  .sw { flex: 1; border-radius: var(--radius-tile); padding: 10px 12px; display: flex; flex-direction: column; justify-content: space-between; min-height: 86px; box-sizing: border-box; }
+  .sw b { font-family: var(--font-display); font-size: 13px; font-weight: 700; letter-spacing: -0.01em; }
+  .sw code { font-family: var(--font-mono); font-size: 10.5px; opacity: 0.8; }
+  .m{flex:1;background:var(--bg-card);border-radius:var(--radius-tile);box-shadow:var(--shadow-sm);padding:12px}
+  .m b{font-family:var(--font-display);font-size:13px;display:block}
+  .m code{font-family:var(--font-mono);font-size:10px;color:var(--text-secondary)}
+</style></head><body>
+
+<div class="row">
+  <div class="m"><b>140ms</b><code>--dur-fast · press, chips</code></div>
+  <div class="m"><b>220ms</b><code>--dur-base · toggles, sheets</code></div>
+  <div class="m"><b>340ms</b><code>--dur-slow · coverage bar fill</code></div>
+  <div class="m"><b>spring</b><code>cubic-bezier(.34,1.4,.5,1)</code></div>
+</div></body></html>

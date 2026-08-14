@@ -1,0 +1,68 @@
+<!-- @dsCard group="Components" viewport="700x330" name="Feedback" subtitle="Toast, StepBar, EmptyState" -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Keepo · Feedback</title>
+    <link rel="stylesheet" href="../../styles.css" />
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="../../ds-card-runtime.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 18px 20px;
+        background: var(--bg-app);
+      }
+      .grp {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      .cap {
+        font-family: var(--font-mono);
+        font-size: 9.5px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+      }
+      .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="text/Keepo-jsx" id="card">
+      ({ Toast, StepBar, EmptyState, Button, Icon }) => (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18, alignItems: 'start' }}>
+            <div className="grp">
+              <span className="cap">Toast</span>
+              <Toast tone="success" message="Message envoyé à Darty" icon={<Icon name="check" size={17} strokeWidth={3} />} />
+              <Toast tone="neutral" message="Objet ajouté — rappel dans 700 jours" icon={<Icon name="bell" size={17} />} />
+              <Toast tone="warning" message="Il reste 28 jours de garantie" icon={<Icon name="clock" size={17} />} />
+              <span className="cap" style={{ marginTop: 6 }}>StepBar</span>
+              <StepBar total={3} current={2} />
+              <span style={{ fontSize: 10.5, letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 700, color: 'var(--text-secondary)' }}>Réclamation · étape 2 sur 3</span>
+            </div>
+            <div className="grp">
+              <span className="cap">EmptyState</span>
+              <EmptyState
+                icon={<Icon name="receipt" size={26} />}
+                title="Rien à surveiller ici"
+                body="Ajoutez votre premier achat — on s'occupe des dates et on vous prévient à temps."
+                action={<Button icon={<Icon name="plus" size={17} />}>Ajouter un objet</Button>} />
+            </div>
+          </div>
+      )
+    </script>
+    <script>
+      KeepoCard(["Toast", "StepBar", "EmptyState", "Button", "Icon"]);
+    </script>
+  </body>
+</html>

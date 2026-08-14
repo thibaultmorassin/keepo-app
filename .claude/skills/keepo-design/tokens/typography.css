@@ -1,0 +1,23 @@
+:root {
+  --font-display: "Bricolage Grotesque", "Instrument Sans", system-ui, sans-serif;
+  --font-sans: "Instrument Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "DM Mono", ui-monospace, Menlo, monospace;
+
+  /* Display — Bricolage, tight, for numbers and screen titles */
+  --type-hero-size: 44px;    --type-hero-lh: 1.0;   --type-hero-ls: -0.03em;  --type-hero-weight: 700;
+  --type-display-size: 30px; --type-display-lh: 1.08; --type-display-ls: -0.02em; --type-display-weight: 700;
+  --type-title-size: 22px;   --type-title-lh: 1.15; --type-title-ls: -0.015em; --type-title-weight: 600;
+  --type-heading-size: 17px; --type-heading-lh: 1.25; --type-heading-ls: -0.01em; --type-heading-weight: 600;
+
+  /* Body — Instrument Sans */
+  --type-body-lg-size: 16px; --type-body-lg-lh: 1.5;
+  --type-body-size: 14.5px;  --type-body-lh: 1.55;
+  --type-label-size: 13px;   --type-label-lh: 1.35; --type-label-weight: 600;
+  --type-caption-size: 12px; --type-caption-lh: 1.4;
+
+  /* Micro — the all-caps eyebrow used above every screen title */
+  --type-micro-size: 10.5px; --type-micro-lh: 1.2; --type-micro-ls: 0.1em; --type-micro-weight: 700;
+
+  /* Mono — serials, receipt lines, countdowns */
+  --type-mono-size: 12.5px;  --type-mono-lh: 1.4; --type-mono-ls: -0.01em;
+}
