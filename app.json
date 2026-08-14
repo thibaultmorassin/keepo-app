@@ -1,4 +1,10 @@
 {
   "name": "keepo-app",
-  "slug": "keepo-app"
+  "slug": "keepo-app",
+  "android": {
+    "package": "com.thibaultkriptown.keepoapp"
+  },
+  "ios": {
+    "bundleIdentifier": "com.thibaultkriptown.keepoapp"
+  }
 }
