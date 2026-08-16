@@ -101,9 +101,14 @@ export function Card({
       onPressOut={() => {
         scale.value = withSpring(1);
       }}
-      style={animatedStyle}
+      style={[styles.pressable, animatedStyle]}
     >
-      <CardContent tone={tone} size={size} pad={pad} style={style}>
+      <CardContent
+        tone={tone}
+        size={size}
+        pad={pad}
+        style={[styles.pressableContent, style]}
+      >
         {children}
       </CardContent>
     </AnimatedPressable>
@@ -113,5 +118,14 @@ export function Card({
 const styles = StyleSheet.create({
   base: {
     flexShrink: 0,
+  },
+  pressable: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+  },
+  pressableContent: {
+    flex: 1,
+    alignSelf: "stretch",
   },
 });

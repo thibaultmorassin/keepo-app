@@ -1,10 +1,13 @@
 import {
   BellRing,
   Bike,
+  BookOpen,
   Check,
   ChevronLeft,
   ChevronRight,
   Coffee,
+  Download,
+  Ellipsis,
   Eye,
   EyeOff,
   Headphones,
@@ -17,6 +20,7 @@ import {
   ShieldCheck,
   Smartphone,
   Trees,
+  TriangleAlert,
   WashingMachine,
   type LucideIcon,
 } from "lucide-react-native";
@@ -25,10 +29,13 @@ import { color } from "@/theme/tokens";
 const ICONS = {
   "bell-ring": BellRing,
   bike: Bike,
+  "book-open": BookOpen,
   check: Check,
   "chevron-left": ChevronLeft,
   "chevron-right": ChevronRight,
   coffee: Coffee,
+  download: Download,
+  ellipsis: Ellipsis,
   eye: Eye,
   "eye-off": EyeOff,
   headphones: Headphones,
@@ -41,6 +48,7 @@ const ICONS = {
   "shield-check": ShieldCheck,
   smartphone: Smartphone,
   trees: Trees,
+  "triangle-alert": TriangleAlert,
   "washing-machine": WashingMachine,
 } as const satisfies Record<string, LucideIcon>;
 
