@@ -95,3 +95,9 @@ function parseDate(isoDate: string): Date {
   const [year, month, day] = isoDate.split("-").map(Number);
   return new Date(year, month - 1, day);
 }
+
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} o`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} Ko`;
+  return `${(bytes / (1024 * 1024)).toFixed(1).replace(".", ",")} Mo`;
+}

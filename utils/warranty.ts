@@ -164,3 +164,64 @@ export function openClaimsLabel(count: number): string {
   if (count === 1) return "1 réclamation ouverte";
   return `${count} réclamations ouvertes`;
 }
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, value));
+}
+
+function toIsoDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/** Percent of the warranty period elapsed. A full bar means act now. */
+export function elapsedPct(
+  purchaseDate: string,
+  warrantyEndDate: string | null,
+  now: Date = new Date(),
+): number {
+  if (!warrantyEndDate) return 0;
+
+  const total = daysBetween(parseDate(purchaseDate), warrantyEndDate);
+  if (total <= 0) return 100;
+
+  const gone = daysBetween(parseDate(purchaseDate), toIsoDate(now));
+  return clamp(Math.round((gone / total) * 100), 0, 100);
+}
+
+/** Status-dependent headline for CoverageBar. */
+export function warrantyHeadline(
+  warrantyEndDate: string | null,
+  now: Date = new Date(),
+): string {
+  if (!warrantyEndDate) return "Sans date de fin";
+
+  const status = statusOf(warrantyEndDate, now);
+  if (status === "expired") return "Garantie terminée";
+
+  const days = remainingDays(warrantyEndDate, now) ?? 0;
+  if (status === "expiring") return `Plus que ${days} jours`;
+
+  return `Sous garantie · ${Math.round(days / 30)} mois`;
+}
+
+/** Duration label from dates, e.g. "2 ans". */
+export function warrantyDurationLabel(
+  purchaseDate: string,
+  warrantyEndDate: string | null,
+): string | null {
+  if (!warrantyEndDate) return null;
+
+  const totalDays = daysBetween(parseDate(purchaseDate), warrantyEndDate);
+  if (totalDays <= 0) return null;
+
+  const months = Math.round(totalDays / 30);
+  if (months >= 12) {
+    const years = Math.round(months / 12);
+    return years === 1 ? "1 an" : `${years} ans`;
+  }
+
+  return months === 1 ? "1 mois" : `${months} mois`;
+}
