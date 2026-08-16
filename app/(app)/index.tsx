@@ -5,6 +5,7 @@ import {
   StyleSheet,
   View,
 } from "react-native";
+import { type Href, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { observer } from "@legendapp/state/react";
 import { syncState } from "@legendapp/state";
@@ -44,6 +45,7 @@ const FILTER_EMPTY_LABELS: Record<Exclude<WarrantyFilter, null>, string> = {
 };
 
 function HomeScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { session } = useSession();
   const [filter, setFilter] = useState<WarrantyFilter>(null);
@@ -109,9 +111,12 @@ function HomeScreen() {
     }
   }, [itemsState, claimsState]);
 
-  const handleOpenItem = useCallback((_id: string) => {
-    // Item detail screen not built yet.
-  }, []);
+  const handleOpenItem = useCallback(
+    (itemId: string) => {
+      router.push(`/items/${itemId}` as Href);
+    },
+    [router],
+  );
 
   const handleAdd = useCallback(() => {
     // Add flow not built yet.
