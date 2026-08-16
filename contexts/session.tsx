@@ -1,3 +1,4 @@
+import { clearSyncedPersistence } from "@/utils/SupaLegend";
 import { supabase } from "@/utils/supabase";
 import type { AuthError, Session } from "@supabase/supabase-js";
 import {
@@ -109,6 +110,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   }, []);
 
   const signOut = useCallback(async () => {
+    await clearSyncedPersistence();
     const { error } = await supabase.auth.signOut();
     return { error: mapAuthError(error) };
   }, []);

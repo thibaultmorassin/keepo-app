@@ -1,5 +1,6 @@
 // @ts-nocheck
 import { observable } from "@legendapp/state";
+import { syncState } from "@legendapp/state";
 import { configureSynced } from "@legendapp/state/sync";
 import { syncedSupabase } from "@legendapp/state/sync-plugins/supabase";
 import { observablePersistAsyncStorage } from "@legendapp/state/persist-plugins/async-storage";
@@ -23,16 +24,18 @@ const customSynced = configureSynced(syncedSupabase, {
   fieldDeleted: "deleted",
 });
 
-export const todos$ = observable(
+export const items$ = observable(
   customSynced({
     supabase,
-    collection: "todos",
+    collection: "items",
     select: (from) =>
-      from.select("id,counter,text,done,created_at,updated_at,deleted"),
+      from.select(
+        "id,title,category,store,price,currency,purchase_date,warranty_end_date,notes,user_id,created_at,updated_at,deleted",
+      ),
     actions: ["read", "create", "update", "delete"],
     realtime: true,
     persist: {
-      name: "todos",
+      name: "items",
       retrySync: true,
     },
     retry: {
@@ -41,14 +44,29 @@ export const todos$ = observable(
   }),
 );
 
-export function addTodo(text: string) {
-  const id = generateId();
-  todos$[id].assign({
-    id,
-    text,
-  });
-}
+export const claims$ = observable(
+  customSynced({
+    supabase,
+    collection: "claims",
+    select: (from) =>
+      from.select(
+        "id,user_id,item_id,issue_group,issue,since,description,recipient,tone,message,sent_at,follow_up_at,resolved_at,created_at,updated_at,deleted",
+      ),
+    actions: ["read", "create", "update", "delete"],
+    realtime: true,
+    persist: {
+      name: "claims",
+      retrySync: true,
+    },
+    retry: {
+      infinite: true,
+    },
+  }),
+);
 
-export function toggleDone(id: string) {
-  todos$[id].done.set((prev) => !prev);
+export async function clearSyncedPersistence() {
+  await Promise.all([
+    syncState(items$).clearPersist(),
+    syncState(claims$).clearPersist(),
+  ]);
 }
