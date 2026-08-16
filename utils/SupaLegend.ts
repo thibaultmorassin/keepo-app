@@ -64,9 +64,30 @@ export const claims$ = observable(
   }),
 );
 
+export const itemDocuments$ = observable(
+  customSynced({
+    supabase,
+    collection: "item_documents",
+    select: (from) =>
+      from.select(
+        "id,item_id,file_name,file_size,file_type,storage_path,created_at",
+      ),
+    actions: ["read"],
+    realtime: true,
+    persist: {
+      name: "item_documents",
+      retrySync: true,
+    },
+    retry: {
+      infinite: true,
+    },
+  }),
+);
+
 export async function clearSyncedPersistence() {
   await Promise.all([
     syncState(items$).clearPersist(),
     syncState(claims$).clearPersist(),
+    syncState(itemDocuments$).clearPersist(),
   ]);
 }
