@@ -1,132 +1,248 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
-  FlatList,
+  RefreshControl,
+  ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { observer } from "@legendapp/state/react";
+import { syncState } from "@legendapp/state";
 import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Icon } from "@/components/ui/Icon";
+import { ItemRow } from "@/components/ui/ItemRow";
+import { CoverageHero } from "@/components/home/CoverageHero";
+import { ExpiringAlert } from "@/components/home/ExpiringAlert";
+import { FilterRow } from "@/components/home/FilterRow";
+import { HomeHeader } from "@/components/home/HomeHeader";
+import { HomeSkeleton } from "@/components/home/HomeSkeleton";
+import {
+  FilterEmptyState,
+  SyncErrorState,
+  useProfileInitials,
+} from "@/components/home/HomeStates";
+import { TabBar } from "@/components/home/TabBar";
 import { useSession } from "@/contexts/session";
-import { addTodo, todos$ as _todos$, toggleDone } from "@/utils/SupaLegend";
-import { Tables } from "@/utils/database.types";
 import { color, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { claims$, items$ } from "@/utils/SupaLegend";
+import type { Tables } from "@/utils/database.types";
+import {
+  categoryIcon,
+  deriveHomeStats,
+  filterItems,
+  itemMeta,
+  remainingLabel,
+  statusOf,
+  type WarrantyFilter,
+} from "@/utils/warranty";
 
-const NOT_DONE_ICON = String.fromCodePoint(0x1f7e0);
-const DONE_ICON = String.fromCodePoint(0x2705);
+const FILTER_EMPTY_LABELS: Record<Exclude<WarrantyFilter, null>, string> = {
+  covered: "Aucun objet couvert.",
+  expiring: "Aucune garantie bientôt expirée.",
+  expired: "Aucun objet expiré.",
+};
 
-function NewTodo() {
-  const [text, setText] = useState("");
+function HomeScreen() {
+  const insets = useSafeAreaInsets();
+  const { session } = useSession();
+  const [filter, setFilter] = useState<WarrantyFilter>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleSubmitEditing = () => {
-    if (!text.trim()) return;
-    addTodo(text.trim());
-    setText("");
-  };
+  const itemsState = syncState(items$);
+  const claimsState = syncState(claims$);
+
+  const itemsRecord = items$.get() as
+    | Record<string, Tables<"items">>
+    | undefined;
+  const claimsRecord = claims$.get() as
+    | Record<string, Tables<"claims">>
+    | undefined;
+
+  const items = useMemo(
+    () =>
+      Object.values(itemsRecord ?? {}).filter(
+        (item) => !item.deleted,
+      ),
+    [itemsRecord],
+  );
+
+  const openClaims = useMemo(
+    () =>
+      Object.values(claimsRecord ?? {}).filter(
+        (claim) => !claim.deleted && claim.resolved_at == null,
+      ).length,
+    [claimsRecord],
+  );
+
+  const stats = useMemo(
+    () => deriveHomeStats(items, openClaims),
+    [items, openClaims],
+  );
+
+  const shownItems = useMemo(
+    () => filterItems(items, filter),
+    [items, filter],
+  );
+
+  const initials = useProfileInitials(
+    session?.user.id,
+    session?.user.email,
+  );
+
+  const isPersistLoaded = itemsState.isPersistLoaded.get();
+  const isLoaded = itemsState.isLoaded.get();
+  const syncError = itemsState.error.get();
+  const hasCachedItems = items.length > 0;
+
+  const showLoading =
+    !isPersistLoaded || (!isLoaded && !hasCachedItems && !syncError);
+  const showSyncError = !!syncError && !hasCachedItems;
+  const showEmpty = !showLoading && !showSyncError && items.length === 0;
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([itemsState.sync(), claimsState.sync()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [itemsState, claimsState]);
+
+  const handleOpenItem = useCallback((_id: string) => {
+    // Item detail screen not built yet.
+  }, []);
+
+  const handleAdd = useCallback(() => {
+    // Add flow not built yet.
+  }, []);
 
   return (
-    <TextInput
-      value={text}
-      onChangeText={setText}
-      onSubmitEditing={handleSubmitEditing}
-      placeholder="What do you want to do today?"
-      placeholderTextColor={color.textMuted}
-      style={styles.input}
-    />
+    <View style={styles.screen}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.content,
+          {
+            paddingTop: insets.top + 14,
+            paddingBottom: insets.bottom + 112,
+          },
+        ]}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={color.brand}
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      >
+        <HomeHeader initials={initials} />
+
+        {showLoading ? <HomeSkeleton /> : null}
+
+        {showSyncError ? (
+          <SyncErrorState onRetry={() => itemsState.sync()} />
+        ) : null}
+
+        {showEmpty ? (
+          <EmptyState
+            title="Rien à couvrir pour l'instant"
+            body="Ajoutez votre premier achat, on surveille la garantie pour vous."
+            icon={
+              <Icon
+                name="shield-check"
+                size={28}
+                color={color.brand}
+              />
+            }
+            action={
+              <Button size="md" onPress={handleAdd}>
+                Ajouter un objet
+              </Button>
+            }
+          />
+        ) : null}
+
+        {!showLoading && !showSyncError && !showEmpty ? (
+          <>
+            <CoverageHero
+              totalCoveredValue={stats.totalCoveredValue}
+              totalItems={stats.totalItems}
+              openClaims={stats.openClaims}
+              coveredCount={stats.coveredCount}
+              expiringCount={stats.expiringCount}
+              expiredCount={stats.expiredCount}
+            />
+
+            {stats.expiringItem ? (
+              <ExpiringAlert
+                item={stats.expiringItem}
+                onPress={() => handleOpenItem(stats.expiringItem!.id)}
+              />
+            ) : null}
+
+            <FilterRow value={filter} onChange={setFilter} />
+
+            {shownItems.length > 0 ? (
+              <View style={styles.list}>
+                {shownItems.map((item) => {
+                  const status = statusOf(item.warranty_end_date);
+                  return (
+                    <ItemRow
+                      key={item.id}
+                      name={item.title}
+                      meta={itemMeta(item)}
+                      status={status ?? "unknown"}
+                      remaining={remainingLabel(item.warranty_end_date)}
+                      icon={
+                        <Icon
+                          name={categoryIcon(item.category)}
+                          size={24}
+                          color={
+                            status === "expiring"
+                              ? color.statusExpiringFg
+                              : status === "expired" || !status
+                                ? color.statusExpiredFg
+                                : color.statusCoveredFg
+                          }
+                        />
+                      }
+                      onPress={() => handleOpenItem(item.id)}
+                    />
+                  );
+                })}
+              </View>
+            ) : (
+              <FilterEmptyState
+                filterLabel={
+                  filter
+                    ? FILTER_EMPTY_LABELS[filter]
+                    : "Aucun objet à afficher."
+                }
+                onReset={() => setFilter(null)}
+              />
+            )}
+          </>
+        ) : null}
+      </ScrollView>
+
+      <TabBar onAdd={handleAdd} />
+    </View>
   );
 }
 
-function Todo({ todo }: { todo: Tables<"todos"> }) {
-  return (
-    <TouchableOpacity
-      onPress={() => toggleDone(todo.id)}
-      style={[styles.todo, todo.done ? styles.done : null]}
-    >
-      <Text style={styles.todoText}>
-        {todo.done ? DONE_ICON : NOT_DONE_ICON} {todo.text}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
-const Todos = observer(({ todos$ }: { todos$: typeof _todos$ }) => {
-  const todos = todos$.get() as Record<string, Tables<"todos">> | undefined;
-
-  if (!todos) return null;
-
-  return (
-    <FlatList
-      data={Object.values(todos)}
-      keyExtractor={(item) => item.id}
-      renderItem={({ item }: { item: Tables<"todos"> }) => <Todo todo={item} />}
-      style={styles.todos}
-    />
-  );
-});
-
-export default function HomeScreen() {
-  const { signOut } = useSession();
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.heading}>Legend-State Example</Text>
-        <Button variant="ghost" size="sm" onPress={() => signOut()}>
-          Se déconnecter
-        </Button>
-      </View>
-      <NewTodo />
-      <Todos todos$={_todos$} />
-    </SafeAreaView>
-  );
-}
+export default observer(HomeScreen);
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
+    flex: 1,
     backgroundColor: color.bgApp,
-    flex: 1,
-    margin: space[6],
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    gap: space[4],
+  content: {
+    paddingHorizontal: space.gutterScreen,
+    gap: space.gapSection,
   },
-  heading: {
-    ...type.title,
-    color: color.textPrimary,
-    flex: 1,
-  },
-  input: {
-    borderColor: color.borderStrong,
-    borderRadius: 8,
-    borderWidth: 2,
-    height: 64,
-    marginTop: space[6],
-    padding: space[6],
-    fontSize: 20,
-    color: color.textPrimary,
-  },
-  todos: {
-    flex: 1,
-    marginTop: space[6],
-  },
-  todo: {
-    borderRadius: 8,
-    marginBottom: space[6],
-    padding: space[6],
-    backgroundColor: color.amber100,
-  },
-  done: {
-    backgroundColor: color.green100,
-  },
-  todoText: {
-    fontSize: 20,
-    color: color.textPrimary,
+  list: {
+    gap: space.gapList,
   },
 });
