@@ -1,13 +1,3 @@
-import { useCallback, useMemo, useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
-import { type Href, useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { observer } from "@legendapp/state/react";
-import { syncState } from "@legendapp/state";
-import { Button } from "@/components/ui/Button";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Icon } from "@/components/ui/Icon";
-import { ItemRow } from "@/components/ui/ItemRow";
 import { CoverageHero } from "@/components/home/CoverageHero";
 import { ExpiringAlert } from "@/components/home/ExpiringAlert";
 import { FilterRow } from "@/components/home/FilterRow";
@@ -19,6 +9,10 @@ import {
   useProfileInitials,
 } from "@/components/home/HomeStates";
 import { TabBar } from "@/components/home/TabBar";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Icon } from "@/components/ui/Icon";
+import { ItemRow } from "@/components/ui/ItemRow";
 import { useSession } from "@/contexts/session";
 import { color, space } from "@/theme/tokens";
 import { claims$, items$ } from "@/utils/SupaLegend";
@@ -32,6 +26,12 @@ import {
   statusOf,
   type WarrantyFilter,
 } from "@/utils/warranty";
+import { syncState } from "@legendapp/state";
+import { observer } from "@legendapp/state/react";
+import { type Href, useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const FILTER_EMPTY_LABELS: Record<Exclude<WarrantyFilter, null>, string> = {
   covered: "Aucun objet couvert.",
@@ -157,6 +157,7 @@ function HomeScreen() {
               coveredCount={stats.coveredCount}
               expiringCount={stats.expiringCount}
               expiredCount={stats.expiredCount}
+              onFilterChange={setFilter}
             />
 
             {stats.expiringItem ? (

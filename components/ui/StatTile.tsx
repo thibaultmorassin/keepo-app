@@ -1,19 +1,14 @@
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { color, radius, space } from "@/theme/tokens";
 import { fontFamily, type } from "@/theme/typography";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
-type StatTileTone =
-  | "onBrand"
-  | "plain"
-  | "covered"
-  | "expiring"
-  | "expired";
+type StatTileTone = "onBrand" | "plain" | "covered" | "expiring" | "expired";
 
-type StatTileProps = {
+type StatTileProps = React.ComponentProps<typeof View> & {
   value: string;
   label: string;
   tone?: StatTileTone;
-  style?: StyleProp<ViewStyle>;
 };
 
 const skins: Record<
@@ -52,16 +47,14 @@ export function StatTile({
   label,
   tone = "onBrand",
   style,
+  ...props
 }: StatTileProps) {
   const skin = skins[tone];
 
   return (
     <View
-      style={[
-        styles.base,
-        { backgroundColor: skin.backgroundColor },
-        style,
-      ]}
+      style={[styles.base, { backgroundColor: skin.backgroundColor }, style]}
+      {...props}
     >
       <Text style={[styles.value, { color: skin.color }]}>{value}</Text>
       <Text
