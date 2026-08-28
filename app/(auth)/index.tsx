@@ -1,13 +1,13 @@
-import { router } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
-import { Icon } from "@/components/ui/Icon";
 import type { IconName } from "@/components/ui/Icon";
+import { Icon } from "@/components/ui/Icon";
 import { color, radius, shadowStyle, space } from "@/theme/tokens";
 import { type } from "@/theme/typography";
+import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const VALUE_ROWS: { icon: IconName; label: string }[] = [
   { icon: "receipt", label: "Le reçu ne se perd plus" },
@@ -16,10 +16,15 @@ const VALUE_ROWS: { icon: IconName; label: string }[] = [
 ];
 
 export default function LandingScreen() {
+  const { top, bottom } = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <ScrollView
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingTop: top + space[8] },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
@@ -58,31 +63,29 @@ export default function LandingScreen() {
       </ScrollView>
 
       <LinearGradient
-        colors={["transparent", color.bgApp]}
-        locations={[0, 0.62]}
+        colors={["transparent", color.paper3]}
         style={styles.footerGradient}
         pointerEvents="box-none"
-      >
-        <View style={styles.footer}>
-          <Button
-            variant="primary"
-            size="lg"
-            full
-            onPress={() => router.push("/signup")}
-          >
-            Créer un compte
-          </Button>
-          <Button
-            variant="ghost"
-            size="md"
-            full
-            onPress={() => router.push("/login")}
-          >
-            J&apos;ai déjà un compte
-          </Button>
-        </View>
-      </LinearGradient>
-    </SafeAreaView>
+      />
+      <View style={[styles.footer, { bottom }]}>
+        <Button
+          variant="primary"
+          size="lg"
+          full
+          onPress={() => router.push("/signup")}
+        >
+          Créer un compte
+        </Button>
+        <Button
+          variant="secondary"
+          size="lg"
+          full
+          onPress={() => router.push("/login")}
+        >
+          J&apos;ai déjà un compte
+        </Button>
+      </View>
+    </View>
   );
 }
 
@@ -92,6 +95,7 @@ const styles = StyleSheet.create({
     backgroundColor: color.bgApp,
   },
   scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: space.gutterScreen,
     paddingTop: space[8],
     paddingBottom: 180,
@@ -175,14 +179,19 @@ const styles = StyleSheet.create({
   },
   footerGradient: {
     position: "absolute",
+    opacity: 0.5,
     left: 0,
     right: 0,
     bottom: 0,
-    paddingTop: space[10],
+    height: 200,
   },
   footer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
     paddingHorizontal: space.gutterScreen,
-    paddingBottom: space[7],
+    paddingBottom: space[4],
     gap: space[4],
   },
 });

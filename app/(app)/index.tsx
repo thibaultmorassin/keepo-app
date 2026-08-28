@@ -1,10 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  View,
-} from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { type Href, useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { observer } from "@legendapp/state/react";
@@ -62,10 +57,7 @@ function HomeScreen() {
     | undefined;
 
   const items = useMemo(
-    () =>
-      Object.values(itemsRecord ?? {}).filter(
-        (item) => !item.deleted,
-      ),
+    () => Object.values(itemsRecord ?? {}).filter((item) => !item.deleted),
     [itemsRecord],
   );
 
@@ -82,15 +74,9 @@ function HomeScreen() {
     [items, openClaims],
   );
 
-  const shownItems = useMemo(
-    () => filterItems(items, filter),
-    [items, filter],
-  );
+  const shownItems = useMemo(() => filterItems(items, filter), [items, filter]);
 
-  const initials = useProfileInitials(
-    session?.user.id,
-    session?.user.email,
-  );
+  const initials = useProfileInitials(session?.user.id, session?.user.email);
 
   const isPersistLoaded = itemsState.isPersistLoaded.get();
   const isLoaded = itemsState.isLoaded.get();
@@ -153,13 +139,7 @@ function HomeScreen() {
           <EmptyState
             title="Rien à couvrir pour l'instant"
             body="Ajoutez votre premier achat, on surveille la garantie pour vous."
-            icon={
-              <Icon
-                name="shield-check"
-                size={28}
-                color={color.brand}
-              />
-            }
+            icon={<Icon name="shield-check" size={28} color={color.brand} />}
             action={
               <Button size="md" onPress={handleAdd}>
                 Ajouter un objet

@@ -175,7 +175,7 @@ export default function SignupScreen() {
           )}
           <Button
             variant="ghost"
-            size="md"
+            size="lg"
             full
             onPress={() => router.push("/login")}
           >
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     paddingHorizontal: space.gutterScreen,
-    paddingBottom: space[7],
+    paddingBottom: space[4],
     gap: space[4],
   },
   errorBox: {

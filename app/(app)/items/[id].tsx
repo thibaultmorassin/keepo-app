@@ -1,23 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
-import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated, {
-  FadeIn,
-  FadeInDown,
-  useReducedMotion,
-} from "react-native-reanimated";
-import { observer } from "@legendapp/state/react";
-import { syncState } from "@legendapp/state";
-import { ItemDetailSkeleton } from "@/components/item/ItemDetailSkeleton";
 import { SyncErrorState } from "@/components/home/HomeStates";
+import { ItemDetailSkeleton } from "@/components/item/ItemDetailSkeleton";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CoverageBar } from "@/components/ui/CoverageBar";
@@ -27,10 +9,10 @@ import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { color, space } from "@/theme/tokens";
 import { fontFamily, type } from "@/theme/typography";
+import type { Tables } from "@/utils/database.types";
 import { formatEuro, formatFileSize, formatShortDate } from "@/utils/format";
 import { haptics } from "@/utils/haptics";
 import { itemDocuments$, items$ } from "@/utils/SupaLegend";
-import type { Tables } from "@/utils/database.types";
 import {
   categoryIcon,
   elapsedPct,
@@ -40,6 +22,24 @@ import {
   warrantyHeadline,
   type WarrantyStatus,
 } from "@/utils/warranty";
+import { syncState } from "@legendapp/state";
+import { observer } from "@legendapp/state/react";
+import { LinearGradient } from "expo-linear-gradient";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import Animated, {
+  FadeIn,
+  FadeInDown,
+  useReducedMotion,
+} from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type ItemDocument = Tables<"item_documents">;
 
@@ -170,7 +170,7 @@ function ItemDetailScreen() {
         contentContainerStyle={[
           styles.content,
           {
-            paddingTop: insets.top + 14,
+            paddingTop: insets.top + space[11],
             paddingBottom: insets.bottom + 120,
           },
         ]}
@@ -183,15 +183,6 @@ function ItemDetailScreen() {
         }
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.nav}>
-          <IconButton label="Retour" onPress={handleBack}>
-            <Icon name="chevron-left" size={20} />
-          </IconButton>
-          <IconButton label="Options">
-            <Icon name="ellipsis" size={20} />
-          </IconButton>
-        </View>
-
         {showLoading ? <ItemDetailSkeleton /> : null}
 
         {showSyncError ? (
