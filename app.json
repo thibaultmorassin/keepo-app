@@ -3,6 +3,7 @@
     "name": "keepo-app",
     "slug": "keepo-app",
     "scheme": "keepo",
+    "version": "1.0.0",
     "experiments": {
       "typedRoutes": true
     },

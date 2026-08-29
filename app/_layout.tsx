@@ -1,19 +1,20 @@
-import { Stack } from "expo-router";
-import { useFonts } from "expo-font";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SplashScreenController } from "@/components/SplashScreenController";
+import { SessionProvider, useSession } from "@/contexts/session";
+import { color } from "@/theme/tokens";
 import {
   BricolageGrotesque_600SemiBold,
   BricolageGrotesque_700Bold,
 } from "@expo-google-fonts/bricolage-grotesque";
+import { DMMono_400Regular } from "@expo-google-fonts/dm-mono";
 import {
   InstrumentSans_400Regular,
   InstrumentSans_500Medium,
   InstrumentSans_600SemiBold,
 } from "@expo-google-fonts/instrument-sans";
-import { DMMono_400Regular } from "@expo-google-fonts/dm-mono";
-import { SessionProvider, useSession } from "@/contexts/session";
-import { SplashScreenController } from "@/components/SplashScreenController";
-import { color } from "@/theme/tokens";
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 function RootNavigator() {
   const { session } = useSession();
@@ -47,10 +48,12 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <SessionProvider>
-        <SplashScreenController fontsLoaded={fontsLoaded} />
-        {fontsLoaded ? <RootNavigator /> : null}
-      </SessionProvider>
+      <KeyboardProvider>
+        <SessionProvider>
+          <SplashScreenController fontsLoaded={fontsLoaded} />
+          {fontsLoaded ? <RootNavigator /> : null}
+        </SessionProvider>
+      </KeyboardProvider>
     </SafeAreaProvider>
   );
 }
