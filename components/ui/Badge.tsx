@@ -9,7 +9,8 @@ type BadgeStatus =
   | "expired"
   | "claim"
   | "pro"
-  | "inverse";
+  | "inverse"
+  | "free";
 
 type BadgeProps = {
   children: ReactNode;
@@ -43,6 +44,10 @@ const skins: Record<BadgeStatus, { backgroundColor: string; color: string }> = {
     backgroundColor: "rgba(252,250,246,0.18)",
     color: color.textOnDark,
   },
+  free: {
+    backgroundColor: color.bgSunken,
+    color: color.textSecondary,
+  },
 };
 
 /** Small status pill. The status word is the colour system — pick the status. */
@@ -55,7 +60,9 @@ export function Badge({
   const skin = skins[status];
 
   return (
-    <View style={[styles.base, { backgroundColor: skin.backgroundColor }, style]}>
+    <View
+      style={[styles.base, { backgroundColor: skin.backgroundColor }, style]}
+    >
       {icon}
       <Text style={[styles.label, { color: skin.color }]} numberOfLines={1}>
         {children}
