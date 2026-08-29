@@ -170,27 +170,36 @@ export type Database = {
       }
       profiles: {
         Row: {
+          app_news_enabled: boolean
+          claim_followup_reminders_enabled: boolean
           created_at: string
           first_name: string | null
           id: string
           last_name: string | null
           reminder_days_before: number
+          store_add_reminders_enabled: boolean
           updated_at: string
         }
         Insert: {
+          app_news_enabled?: boolean
+          claim_followup_reminders_enabled?: boolean
           created_at?: string
           first_name?: string | null
           id: string
           last_name?: string | null
           reminder_days_before?: number
+          store_add_reminders_enabled?: boolean
           updated_at?: string
         }
         Update: {
+          app_news_enabled?: boolean
+          claim_followup_reminders_enabled?: boolean
           created_at?: string
           first_name?: string | null
           id?: string
           last_name?: string | null
           reminder_days_before?: number
+          store_add_reminders_enabled?: boolean
           updated_at?: string
         }
         Relationships: []
