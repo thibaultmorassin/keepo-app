@@ -127,6 +127,7 @@ export type Database = {
           notes: string | null
           price: number | null
           purchase_date: string
+          reminder_enabled: boolean
           store: string | null
           title: string
           updated_at: string
@@ -142,6 +143,7 @@ export type Database = {
           notes?: string | null
           price?: number | null
           purchase_date: string
+          reminder_enabled?: boolean
           store?: string | null
           title: string
           updated_at?: string
@@ -157,6 +159,7 @@ export type Database = {
           notes?: string | null
           price?: number | null
           purchase_date?: string
+          reminder_enabled?: boolean
           store?: string | null
           title?: string
           updated_at?: string

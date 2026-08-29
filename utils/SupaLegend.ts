@@ -8,7 +8,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { v4 as uuidv4 } from "uuid";
 import { supabase } from "./supabase";
 
-const generateId = () => uuidv4();
+export const generateId = () => uuidv4();
 
 const customSynced = configureSynced(syncedSupabase, {
   persist: {
@@ -30,7 +30,7 @@ export const items$ = observable(
     collection: "items",
     select: (from) =>
       from.select(
-        "id,title,category,store,price,currency,purchase_date,warranty_end_date,notes,user_id,created_at,updated_at,deleted",
+        "id,title,category,store,price,currency,purchase_date,warranty_end_date,reminder_enabled,notes,user_id,created_at,updated_at,deleted",
       ),
     actions: ["read", "create", "update", "delete"],
     realtime: true,
@@ -72,7 +72,7 @@ export const itemDocuments$ = observable(
       from.select(
         "id,item_id,file_name,file_size,file_type,storage_path,created_at",
       ),
-    actions: ["read"],
+    actions: ["read", "create", "delete"],
     realtime: true,
     persist: {
       name: "item_documents",
