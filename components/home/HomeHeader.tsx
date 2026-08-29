@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View } from "react-native";
 import { color, space } from "@/theme/tokens";
 import { type } from "@/theme/typography";
 import { formatEyebrowDate } from "@/utils/format";
+import { Link } from "expo-router";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type HomeHeaderProps = {
   initials: string;
@@ -14,9 +15,11 @@ export function HomeHeader({ initials }: HomeHeaderProps) {
         <Text style={styles.eyebrow}>{formatEyebrowDate()}</Text>
         <Text style={styles.title}>Vos garanties</Text>
       </View>
-      <View style={styles.avatar}>
-        <Text style={styles.initials}>{initials}</Text>
-      </View>
+      <Link href="/settings" asChild>
+        <Pressable style={styles.avatar} hitSlop={10}>
+          <Text style={styles.initials}>{initials}</Text>
+        </Pressable>
+      </Link>
     </View>
   );
 }

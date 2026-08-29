@@ -8,7 +8,6 @@ import {
   SyncErrorState,
   useProfileInitials,
 } from "@/components/home/HomeStates";
-import { TabBar } from "@/components/home/TabBar";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
@@ -213,8 +212,6 @@ function HomeScreen() {
           </>
         ) : null}
       </ScrollView>
-
-      <TabBar onAdd={handleAdd} />
     </View>
   );
 }

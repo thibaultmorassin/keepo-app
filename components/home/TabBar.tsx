@@ -2,13 +2,24 @@ import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { color, radius, shadowStyle, space } from "@/theme/tokens";
 import { LinearGradient } from "expo-linear-gradient";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+
+const IDLE_COLOR = "rgba(252,250,246,0.45)";
+
+// Wrapper paddingBottom (30) + pill height (paddingVertical 7*2 + the
+// Ajouter button's 40px minHeight) — the space the floating pill actually
+// occupies from the bottom of the screen. Screens with their own fixed
+// bottom content (e.g. item detail's claim CTA) use this to sit above it.
+export const TAB_BAR_HEIGHT = 84;
 
 type TabBarProps = {
   onAdd?: () => void;
+  onHome?: () => void;
+  onSettings?: () => void;
+  active?: "home" | "settings";
 };
 
-export function TabBar({ onAdd }: TabBarProps) {
+export function TabBar({ onAdd, onHome, onSettings, active }: TabBarProps) {
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
       <LinearGradient
@@ -19,24 +30,38 @@ export function TabBar({ onAdd }: TabBarProps) {
       />
       <View style={styles.pill}>
         <View style={styles.icons}>
-          <Icon
-            name="layout-grid"
-            size={21}
-            color={color.textOnDark}
+          <Pressable
+            accessibilityRole="button"
             accessibilityLabel="Accueil"
-          />
-          <Icon
-            name="shield-check"
-            size={21}
-            color="rgba(252,250,246,0.45)"
-            accessibilityLabel="Garanties"
-          />
-          <Icon
-            name="settings"
-            size={21}
-            color="rgba(252,250,246,0.45)"
+            onPress={onHome}
+          >
+            <Icon
+              name="layout-grid"
+              size={21}
+              color={active === "home" ? color.textOnDark : IDLE_COLOR}
+              accessibilityLabel="Accueil"
+            />
+          </Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Garanties">
+            <Icon
+              name="shield-check"
+              size={21}
+              color={IDLE_COLOR}
+              accessibilityLabel="Garanties"
+            />
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
             accessibilityLabel="Réglages"
-          />
+            onPress={onSettings}
+          >
+            <Icon
+              name="settings"
+              size={21}
+              color={active === "settings" ? color.textOnDark : IDLE_COLOR}
+              accessibilityLabel="Réglages"
+            />
+          </Pressable>
         </View>
         <Button
           size="lg"
