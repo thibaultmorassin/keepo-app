@@ -19,7 +19,15 @@
       "expo-router",
       "expo-status-bar",
       "expo-splash-screen",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Keepo accède à vos photos pour joindre le reçu à un objet.",
+          "cameraPermission": "Keepo utilise l'appareil photo pour photographier vos reçus."
+        }
+      ],
+      "@react-native-community/datetimepicker"
     ]
   }
 }
