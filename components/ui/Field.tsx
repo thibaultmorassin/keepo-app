@@ -19,6 +19,7 @@ type FieldProps = {
   onChangeText?: (text: string) => void;
   placeholder?: string;
   hint?: string;
+  error?: string;
   secureTextEntry?: boolean;
   suffix?: string;
   style?: StyleProp<ViewStyle>;
@@ -37,6 +38,7 @@ export function Field({
   onChangeText,
   placeholder,
   hint,
+  error,
   secureTextEntry = false,
   suffix,
   style,
@@ -60,6 +62,7 @@ export function Field({
           style={[
             styles.input,
             focused && styles.inputFocused,
+            error && styles.inputError,
             secureTextEntry || suffix ? styles.inputWithSuffix : null,
           ]}
           {...inputProps}
@@ -85,7 +88,11 @@ export function Field({
           <Text style={styles.suffixText}>{suffix}</Text>
         ) : null}
       </View>
-      {hint ? <Text style={styles.hint}>{hint}</Text> : null}
+      {error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : hint ? (
+        <Text style={styles.hint}>{hint}</Text>
+      ) : null}
     </View>
   );
 }
@@ -123,6 +130,9 @@ const styles = StyleSheet.create({
   inputWithSuffix: {
     paddingRight: 48,
   },
+  inputError: {
+    borderColor: color.actionClaimFg,
+  },
   suffix: {
     position: "absolute",
     right: 6,
@@ -136,5 +146,9 @@ const styles = StyleSheet.create({
   hint: {
     ...type.caption,
     color: color.textMuted,
+  },
+  errorText: {
+    ...type.caption,
+    color: color.actionClaimFg,
   },
 });

@@ -110,13 +110,13 @@ export function Button({
           backgroundColor: skin.backgroundColor,
           paddingVertical: sizeStyle.paddingVertical,
           paddingHorizontal: sizeStyle.paddingHorizontal,
-          opacity: isDisabled ? 0.42 : 1,
           width: full ? "100%" : undefined,
           alignSelf: full ? "stretch" : "flex-start",
         },
         skin.shadow,
         animatedStyle,
         style,
+        isDisabled ? styles.disabled : undefined,
       ]}
     >
       {loading ? (
@@ -159,5 +159,9 @@ const styles = StyleSheet.create({
     fontFamily: fontFamily.display,
     fontWeight: "600",
     letterSpacing: -0.15,
+  },
+  disabled: {
+    backgroundColor: color.textMuted,
+    color: color.textOnDark,
   },
 });
