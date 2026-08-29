@@ -117,6 +117,6 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   statTileActive: {
-    transform: [{ scale: 0.2 }],
+    transform: [{ scale: 0.98 }],
   },
 });

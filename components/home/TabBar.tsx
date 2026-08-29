@@ -1,8 +1,8 @@
-import { StyleSheet, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { color, radius, shadowStyle, space } from "@/theme/tokens";
+import { LinearGradient } from "expo-linear-gradient";
+import { StyleSheet, View } from "react-native";
 
 type TabBarProps = {
   onAdd?: () => void;
@@ -12,8 +12,8 @@ export function TabBar({ onAdd }: TabBarProps) {
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
       <LinearGradient
-        colors={[color.bgApp, "transparent"]}
-        locations={[0.58, 1]}
+        colors={[color.bgApp, `${color.bgApp}00`]}
+        // locations={[0.58, 1]}
         style={styles.gradient}
         pointerEvents="none"
       />
@@ -39,8 +39,15 @@ export function TabBar({ onAdd }: TabBarProps) {
           />
         </View>
         <Button
-          size="sm"
-          icon={<Icon name="plus" size={17} strokeWidth={3} color={color.textOnDark} />}
+          size="lg"
+          icon={
+            <Icon
+              name="plus"
+              size={17}
+              strokeWidth={3}
+              color={color.textOnDark}
+            />
+          }
           onPress={onAdd}
           style={styles.addButton}
         >
