@@ -353,7 +353,6 @@ function ItemDetailScreen() {
       {item && !isDeleted && !showLoading && !showSyncError ? (
         <LinearGradient
           colors={[`${color.bgApp}00`, color.bgApp]}
-          locations={[0, 0.62]}
           style={[styles.footer, { paddingBottom: insets.bottom + 18 }]}
           pointerEvents="box-none"
         >
