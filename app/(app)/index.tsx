@@ -17,6 +17,7 @@ import { useSession } from "@/contexts/session";
 import { color, space } from "@/theme/tokens";
 import { claims$, items$ } from "@/utils/SupaLegend";
 import type { Tables } from "@/utils/database.types";
+import { haptics } from "@/utils/haptics";
 import {
   categoryIcon,
   deriveHomeStats,
@@ -105,8 +106,9 @@ function HomeScreen() {
   );
 
   const handleAdd = useCallback(() => {
-    // Add flow not built yet.
-  }, []);
+    haptics.light();
+    router.push("/add");
+  }, [router]);
 
   return (
     <View style={styles.screen}>
