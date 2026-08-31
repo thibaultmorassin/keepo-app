@@ -1,19 +1,10 @@
+import { View } from "@/tw";
+import { Animated } from "@/tw/animated";
+import { motion } from "@/theme/tokens";
+import clsx from "clsx";
 import { ReactNode } from "react";
-import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewStyle,
-} from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
-import { color, motion, radius, shadowStyle, space } from "@/theme/tokens";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+import { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { twMerge } from "tailwind-merge";
 
 type CardTone = "plain" | "sunken" | "brand" | "tint" | "inverse" | "outline";
 type CardSize = "card" | "hero";
@@ -24,46 +15,36 @@ type CardProps = {
   size?: CardSize;
   pad?: number;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 };
 
-const skins: Record<CardTone, ViewStyle> = {
-  plain: { backgroundColor: color.bgCard, ...shadowStyle.sm },
-  sunken: { backgroundColor: color.bgSunken },
-  brand: {
-    backgroundColor: color.brand,
-    ...shadowStyle.card,
-  },
-  tint: { backgroundColor: color.brandTint },
-  inverse: {
-    backgroundColor: color.bgInverse,
-    ...shadowStyle.card,
-  },
-  outline: {
-    backgroundColor: color.bgCard,
-    borderWidth: 1,
-    borderColor: color.borderSubtle,
-  },
+const tones: Record<CardTone, string> = {
+  plain: "bg-card shadow-sm",
+  sunken: "bg-sunken",
+  brand: "bg-brand shadow-card",
+  tint: "bg-brand-tint",
+  inverse: "bg-inverse shadow-card",
+  outline: "bg-card border border-line",
+};
+
+const sizes: Record<CardSize, string> = {
+  card: "rounded-card p-card",
+  hero: "rounded-hero p-card-lg",
 };
 
 function CardContent({
   children,
-  tone,
-  size,
+  tone = "plain",
+  size = "card",
   pad,
-  style,
+  className,
 }: Omit<CardProps, "onPress">) {
   return (
     <View
-      style={[
-        styles.base,
-        {
-          borderRadius: size === "hero" ? radius.hero : radius.card,
-          padding: pad ?? (size === "hero" ? space.padCardLg : space.padCard),
-        },
-        skins[tone ?? "plain"],
-        style,
-      ]}
+      className={twMerge(clsx("shrink-0", sizes[size], tones[tone]), className)}
+      // Only pass `style` when there is a numeric override: react-native-css
+      // writes className into `style`, so even an explicit `undefined` clobbers it.
+      {...(pad === undefined ? {} : { style: { padding: pad } })}
     >
       {children}
     </View>
@@ -76,7 +57,7 @@ export function Card({
   size = "card",
   pad,
   onPress,
-  style,
+  className,
 }: CardProps) {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
@@ -85,14 +66,14 @@ export function Card({
 
   if (!onPress) {
     return (
-      <CardContent tone={tone} size={size} pad={pad} style={style}>
+      <CardContent tone={tone} size={size} pad={pad} className={className}>
         {children}
       </CardContent>
     );
   }
 
   return (
-    <AnimatedPressable
+    <Animated.Pressable
       accessibilityRole="button"
       onPress={onPress}
       onPressIn={() => {
@@ -101,31 +82,17 @@ export function Card({
       onPressOut={() => {
         scale.value = withSpring(1);
       }}
-      style={[styles.pressable, animatedStyle]}
+      className="grow shrink basis-0"
+      style={animatedStyle}
     >
       <CardContent
         tone={tone}
         size={size}
         pad={pad}
-        style={[styles.pressableContent, style]}
+        className={twMerge("flex-1 self-stretch", className)}
       >
         {children}
       </CardContent>
-    </AnimatedPressable>
+    </Animated.Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    flexShrink: 0,
-  },
-  pressable: {
-    flexGrow: 1,
-    flexShrink: 1,
-    flexBasis: 0,
-  },
-  pressableContent: {
-    flex: 1,
-    alignSelf: "stretch",
-  },
-});

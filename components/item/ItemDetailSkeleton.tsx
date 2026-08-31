@@ -1,70 +1,24 @@
-import { StyleSheet, View } from "react-native";
-import { color, radius, space } from "@/theme/tokens";
+import { View } from "@/tw";
+
+const BLOCK = "bg-sunken rounded-card";
 
 export function ItemDetailSkeleton() {
   return (
-    <View style={styles.container}>
-      <View style={styles.heroRow}>
-        <View style={[styles.block, styles.tile]} />
-        <View style={styles.heroCopy}>
-          <View style={[styles.block, styles.title]} />
-          <View style={[styles.block, styles.subtitle]} />
+    <View className="gap-4">
+      <View className="flex-row items-center gap-3.75">
+        <View className="size-19.5 rounded-pill bg-sunken" />
+        <View className="flex-1 gap-2">
+          <View className={`${BLOCK} h-6 w-4/5`} />
+          <View className={`${BLOCK} h-4 w-[55%]`} />
         </View>
       </View>
-      <View style={[styles.block, styles.coverage]} />
-      <View style={styles.actions}>
-        <View style={[styles.block, styles.action]} />
-        <View style={[styles.block, styles.action]} />
-        <View style={[styles.block, styles.action]} />
+      <View className={`${BLOCK} h-22`} />
+      <View className="flex-row gap-2.5">
+        <View className={`${BLOCK} h-24 flex-1`} />
+        <View className={`${BLOCK} h-24 flex-1`} />
+        <View className={`${BLOCK} h-24 flex-1`} />
       </View>
-      <View style={[styles.block, styles.specs]} />
+      <View className={`${BLOCK} h-39`} />
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    gap: space[6],
-  },
-  heroRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 15,
-  },
-  heroCopy: {
-    flex: 1,
-    gap: space[4],
-  },
-  block: {
-    backgroundColor: color.bgSunken,
-    borderRadius: radius.card,
-  },
-  tile: {
-    width: 78,
-    height: 78,
-    borderRadius: radius.pill,
-  },
-  title: {
-    height: 24,
-    width: "80%",
-  },
-  subtitle: {
-    height: 16,
-    width: "55%",
-  },
-  coverage: {
-    height: 88,
-    borderRadius: radius.card,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  action: {
-    flex: 1,
-    height: 96,
-  },
-  specs: {
-    height: 156,
-  },
-});

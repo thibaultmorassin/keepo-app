@@ -4,19 +4,11 @@ import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { useSession } from "@/contexts/session";
-import { color, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { color } from "@/theme/tokens";
+import { SafeAreaView, ScrollView, Text, View } from "@/tw";
 import { router } from "expo-router";
 import { useState } from "react";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { KeyboardAvoidingView, Platform } from "react-native";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -71,17 +63,17 @@ export default function SignupScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView className="flex-1 bg-app">
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerClassName="gap-section px-gutter pb-6 pt-2"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.topRow}>
+          <View className="self-start">
             <IconButton
               label="Retour"
               variant="surface"
@@ -91,30 +83,30 @@ export default function SignupScreen() {
             </IconButton>
           </View>
 
-          <View style={styles.header}>
-            <Text style={styles.eyebrow}>Inscription</Text>
-            <Text style={styles.title}>Créer un compte</Text>
-            <Text style={styles.body}>
+          <View className="gap-1.5">
+            <Text className="type-micro text-secondary">Inscription</Text>
+            <Text className="type-display text-primary">Créer un compte</Text>
+            <Text className="type-body text-secondary">
               Une minute, et le premier reçu est à l&apos;abri.
             </Text>
           </View>
 
           {needsEmailConfirmation ? (
-            <View style={styles.confirmationBox}>
-              <Text style={styles.confirmationTitle}>
+            <View className="gap-1.5 rounded-[22px] bg-brand-tint p-5">
+              <Text className="type-heading text-brand-strong">
                 Vérifiez votre boîte mail
               </Text>
-              <Text style={styles.confirmationBody}>
+              <Text className="type-body text-brand-strong">
                 On vous a envoyé un lien. Ouvrez-le pour activer votre compte.
               </Text>
               {pendingVerification ? (
-                <Text style={styles.pendingText}>
+                <Text className="type-caption text-brand-strong opacity-[0.82]">
                   Pas encore confirmé. Ouvrez le lien reçu par email.
                 </Text>
               ) : null}
             </View>
           ) : (
-            <Card tone="outline" style={styles.formCard}>
+            <Card tone="outline" className="gap-4">
               <Field
                 label="Email"
                 value={email}
@@ -137,7 +129,7 @@ export default function SignupScreen() {
                 textContentType="newPassword"
               />
               {passwordTooShort ? (
-                <Text style={styles.inlineError}>
+                <Text className="type-caption text-claim-fg">
                   Le mot de passe doit contenir au moins 8 caractères.
                 </Text>
               ) : null}
@@ -145,10 +137,10 @@ export default function SignupScreen() {
           )}
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View className="gap-2 px-gutter pb-2">
           {error ? (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorText}>{error}</Text>
+            <View className="rounded-[14px] bg-claim-bg px-4 py-3">
+              <Text className="type-body text-claim-fg">{error}</Text>
             </View>
           ) : null}
           {!needsEmailConfirmation ? (
@@ -187,77 +179,3 @@ export default function SignupScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: color.bgApp,
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: space.gutterScreen,
-    paddingTop: space[4],
-    paddingBottom: space[8],
-    gap: space.gapSection,
-  },
-  topRow: {
-    alignSelf: "flex-start",
-  },
-  header: {
-    gap: space[3],
-  },
-  eyebrow: {
-    ...type.micro,
-    color: color.textSecondary,
-  },
-  title: {
-    ...type.display,
-    color: color.textPrimary,
-  },
-  body: {
-    ...type.body,
-    color: color.textSecondary,
-  },
-  formCard: {
-    gap: space[6],
-  },
-  inlineError: {
-    ...type.caption,
-    color: color.actionClaimFg,
-  },
-  confirmationBox: {
-    backgroundColor: color.brandTint,
-    borderRadius: 22,
-    padding: space[7],
-    gap: space[3],
-  },
-  confirmationTitle: {
-    ...type.heading,
-    color: color.brandStrong,
-  },
-  confirmationBody: {
-    ...type.body,
-    color: color.brandStrong,
-  },
-  pendingText: {
-    ...type.caption,
-    color: color.brandStrong,
-    opacity: 0.82,
-  },
-  footer: {
-    paddingHorizontal: space.gutterScreen,
-    paddingBottom: space[4],
-    gap: space[4],
-  },
-  errorBox: {
-    backgroundColor: color.actionClaimBg,
-    borderRadius: 14,
-    paddingVertical: space[5],
-    paddingHorizontal: space[6],
-  },
-  errorText: {
-    ...type.body,
-    color: color.actionClaimFg,
-  },
-});

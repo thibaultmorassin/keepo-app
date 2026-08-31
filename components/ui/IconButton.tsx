@@ -1,19 +1,9 @@
+import { motion } from "@/theme/tokens";
+import { Animated } from "@/tw/animated";
+import clsx from "clsx";
 import { ReactNode } from "react";
-import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewStyle,
-} from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
-import { color, motion, radius } from "@/theme/tokens";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+import { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { twMerge } from "tailwind-merge";
 
 type IconButtonVariant = "surface" | "ghost" | "brand" | "inverse";
 type IconButtonSize = "sm" | "md";
@@ -24,14 +14,19 @@ type IconButtonProps = {
   variant?: IconButtonVariant;
   size?: IconButtonSize;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 };
 
-const skins: Record<IconButtonVariant, ViewStyle> = {
-  surface: { backgroundColor: color.bgSunken },
-  ghost: { backgroundColor: "transparent" },
-  brand: { backgroundColor: color.brandTint },
-  inverse: { backgroundColor: "rgba(252,250,246,0.16)" },
+const variants: Record<IconButtonVariant, string> = {
+  surface: "bg-sunken",
+  ghost: "bg-transparent",
+  brand: "bg-brand-tint",
+  inverse: "bg-on-dark/16",
+};
+
+const sizes: Record<IconButtonSize, string> = {
+  sm: "size-[34px]",
+  md: "size-[42px]",
 };
 
 export function IconButton({
@@ -40,17 +35,16 @@ export function IconButton({
   variant = "surface",
   size = "md",
   onPress,
-  style,
+  className,
 }: IconButtonProps) {
   const scale = useSharedValue(1);
-  const px = size === "sm" ? 34 : 42;
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
   return (
-    <AnimatedPressable
+    <Animated.Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
       onPress={onPress}
@@ -60,27 +54,17 @@ export function IconButton({
       onPressOut={() => {
         scale.value = withSpring(1);
       }}
-      style={[
-        styles.base,
-        {
-          width: px,
-          height: px,
-        },
-        skins[variant],
-        animatedStyle,
-        style,
-      ]}
+      className={twMerge(
+        clsx(
+          "shrink-0 items-center justify-center rounded-pill",
+          sizes[size],
+          variants[variant],
+        ),
+        className,
+      )}
+      style={animatedStyle}
     >
       {children}
-    </AnimatedPressable>
+    </Animated.Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    borderRadius: radius.pill,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-});

@@ -1,15 +1,16 @@
+import { duration } from "@/theme/tokens";
+import { Text, View } from "@/tw";
+import { Animated } from "@/tw/animated";
+import type { WarrantyStatus } from "@/utils/warranty";
+import clsx from "clsx";
 import { useEffect } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import Animated, {
+import {
   Easing,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
   withTiming,
 } from "react-native-reanimated";
-import { color, duration, space } from "@/theme/tokens";
-import { fontFamily, type } from "@/theme/typography";
-import type { WarrantyStatus } from "@/utils/warranty";
 
 type CoverageBarStatus = WarrantyStatus | "unknown";
 
@@ -23,18 +24,18 @@ type CoverageBarProps = {
   animate?: boolean;
 };
 
-const barColors: Record<CoverageBarStatus, string> = {
-  covered: color.statusCoveredBar,
-  expiring: color.statusExpiringBar,
-  expired: color.statusExpiredBar,
-  unknown: color.statusExpiredBar,
+const bars: Record<CoverageBarStatus, string> = {
+  covered: "bg-covered-bar",
+  expiring: "bg-expiring-bar",
+  expired: "bg-expired-bar",
+  unknown: "bg-expired-bar",
 };
 
-const fgColors: Record<CoverageBarStatus, string> = {
-  covered: color.statusCoveredFg,
-  expiring: color.statusExpiringFg,
-  expired: color.statusExpiredFg,
-  unknown: color.statusExpiredFg,
+const foregrounds: Record<CoverageBarStatus, string> = {
+  covered: "text-covered-fg",
+  expiring: "text-expiring-fg",
+  expired: "text-expired-fg",
+  unknown: "text-expired-fg",
 };
 
 export function CoverageBar({
@@ -69,69 +70,38 @@ export function CoverageBar({
   return (
     <View>
       {headline || note ? (
-        <View style={styles.header}>
-          <Text style={[styles.headline, { color: fgColors[status] }]}>
+        <View className="flex-row items-baseline justify-between gap-3">
+          <Text
+            className={clsx(
+              "type-heading flex-1 font-display-bold font-bold",
+              foregrounds[status],
+            )}
+          >
             {headline}
           </Text>
-          {note ? <Text style={styles.note}>{note}</Text> : null}
+          {note ? (
+            <Text className="type-caption text-muted">{note}</Text>
+          ) : null}
         </View>
       ) : null}
 
-      <View style={styles.track}>
+      <View className="mt-3 h-list overflow-hidden rounded-full bg-sunken">
         <Animated.View
-          style={[
-            styles.fill,
-            { backgroundColor: barColors[status] },
-            fillStyle,
-          ]}
+          className={clsx("h-full rounded-full", bars[status])}
+          style={fillStyle}
         />
       </View>
 
       {from || to ? (
-        <View style={styles.dates}>
-          {from ? <Text style={styles.date}>{from}</Text> : <View />}
-          {to ? <Text style={styles.date}>{to}</Text> : null}
+        <View className="mt-2 flex-row justify-between">
+          {from ? (
+            <Text className="type-mono text-muted">{from}</Text>
+          ) : (
+            <View />
+          )}
+          {to ? <Text className="type-mono text-muted">{to}</Text> : null}
         </View>
       ) : null}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  header: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    gap: space[5],
-  },
-  headline: {
-    ...type.heading,
-    fontFamily: fontFamily.displayBold,
-    fontWeight: "700",
-    flex: 1,
-  },
-  note: {
-    ...type.caption,
-    color: color.textMuted,
-  },
-  track: {
-    height: 9,
-    borderRadius: 999,
-    backgroundColor: color.bgSunken,
-    marginTop: space[5],
-    overflow: "hidden",
-  },
-  fill: {
-    height: "100%",
-    borderRadius: 999,
-  },
-  dates: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: space[4],
-  },
-  date: {
-    ...type.mono,
-    color: color.textMuted,
-  },
-});

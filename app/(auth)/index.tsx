@@ -2,11 +2,10 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import type { IconName } from "@/components/ui/Icon";
 import { Icon } from "@/components/ui/Icon";
-import { color, radius, shadowStyle, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { color } from "@/theme/tokens";
+import { ScrollView, Text, View } from "@/tw";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const VALUE_ROWS: { icon: IconName; label: string }[] = [
@@ -19,44 +18,42 @@ export default function LandingScreen() {
   const { top, bottom } = useSafeAreaInsets();
 
   return (
-    <View style={styles.safeArea}>
+    <View className="flex-1 bg-app">
       <ScrollView
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingTop: top + space[8] },
-        ]}
+        contentContainerClassName="grow gap-section px-gutter pb-[180px]"
+        contentContainerStyle={{ paddingTop: top + 24 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Text style={styles.eyebrow}>Keepo</Text>
-          <Text style={styles.title}>Vos garanties, au chaud</Text>
-          <Text style={styles.body}>
+        <View className="gap-1.5">
+          <Text className="type-micro text-secondary">Keepo</Text>
+          <Text className="type-display text-primary">Vos garanties, au chaud</Text>
+          <Text className="type-body mt-1 text-secondary">
             On garde vos reçus, on surveille les dates, et on écrit la
             réclamation quand ça casse.
           </Text>
         </View>
 
-        <Card tone="brand" size="hero" style={styles.heroCard}>
-          <View style={styles.heroCircle} />
-          <View style={styles.heroContent}>
-            <Text style={styles.heroEyebrow}>Votre tranquillité</Text>
-            <Text style={styles.heroTitle}>
+        <Card tone="brand" size="hero" className="relative overflow-hidden">
+          <View className="absolute -right-[46px] -top-[46px] size-[170px] rounded-pill bg-on-dark/12" />
+          <View className="relative gap-1.5">
+            <Text className="type-micro text-on-dark opacity-[0.82]">Votre tranquillité</Text>
+            <Text className="type-title font-display-bold text-[24px]/[28px] text-on-dark">
               Tous vos achats,{"\n"}un seul endroit
             </Text>
-            <Text style={styles.heroBody}>
+            <Text className="type-body text-on-dark opacity-[0.88]">
               Scannez ou saisissez un reçu en magasin. On s&apos;occupe du
               reste.
             </Text>
           </View>
         </Card>
 
-        <View style={styles.valueList}>
+        <View className="gap-list">
           {VALUE_ROWS.map((row) => (
-            <View key={row.label} style={styles.valueRow}>
-              <View style={styles.valueIcon}>
+            <View key={row.label} className="flex-row items-center gap-3 rounded-tile bg-card px-4 py-3.5 shadow-sm">
+              <View className="size-10 items-center justify-center rounded-full bg-brand-tint">
                 <Icon name={row.icon} size={20} color={color.brandStrong} />
               </View>
-              <Text style={styles.valueLabel}>{row.label}</Text>
+              <Text className="type-body flex-1 text-primary">{row.label}</Text>
             </View>
           ))}
         </View>
@@ -64,10 +61,20 @@ export default function LandingScreen() {
 
       <LinearGradient
         colors={["transparent", color.paper3]}
-        style={styles.footerGradient}
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 200,
+          opacity: 0.5,
+        }}
         pointerEvents="box-none"
       />
-      <View style={[styles.footer, { bottom }]}>
+      <View
+        className="absolute inset-x-0 gap-2 px-gutter pb-2"
+        style={{ bottom }}
+      >
         <Button
           variant="primary"
           size="lg"
@@ -89,109 +96,3 @@ export default function LandingScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: color.bgApp,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: space.gutterScreen,
-    paddingTop: space[8],
-    paddingBottom: 180,
-    gap: space.gapSection,
-  },
-  header: {
-    gap: space[3],
-  },
-  eyebrow: {
-    ...type.micro,
-    color: color.textSecondary,
-  },
-  title: {
-    ...type.display,
-    color: color.textPrimary,
-  },
-  body: {
-    ...type.body,
-    color: color.textSecondary,
-    marginTop: space[2],
-  },
-  heroCard: {
-    overflow: "hidden",
-    position: "relative",
-  },
-  heroCircle: {
-    position: "absolute",
-    right: -46,
-    top: -46,
-    width: 170,
-    height: 170,
-    borderRadius: radius.pill,
-    backgroundColor: color.heroCircle,
-  },
-  heroContent: {
-    position: "relative",
-    gap: space[3],
-  },
-  heroEyebrow: {
-    ...type.micro,
-    color: color.textOnDark,
-    opacity: 0.82,
-  },
-  heroTitle: {
-    ...type.title,
-    color: color.textOnDark,
-    fontFamily: type.display.fontFamily,
-    fontSize: 24,
-    lineHeight: 28,
-  },
-  heroBody: {
-    ...type.body,
-    color: color.textOnDark,
-    opacity: 0.88,
-  },
-  valueList: {
-    gap: space.gapList,
-  },
-  valueRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[5],
-    backgroundColor: color.bgCard,
-    borderRadius: 16,
-    paddingVertical: 14,
-    paddingHorizontal: space[6],
-    ...shadowStyle.sm,
-  },
-  valueIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 999,
-    backgroundColor: color.brandTint,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  valueLabel: {
-    ...type.body,
-    color: color.textPrimary,
-    flex: 1,
-  },
-  footerGradient: {
-    position: "absolute",
-    opacity: 0.5,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 200,
-  },
-  footer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: space.gutterScreen,
-    paddingBottom: space[4],
-    gap: space[4],
-  },
-});

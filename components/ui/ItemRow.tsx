@@ -1,22 +1,15 @@
+import { motion } from "@/theme/tokens";
+import { Text, View } from "@/tw";
+import { Animated } from "@/tw/animated";
+import type { WarrantyStatus } from "@/utils/warranty";
+import clsx from "clsx";
 import { ReactNode } from "react";
 import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  View,
-  ViewStyle,
-} from "react-native";
-import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { color, motion, radius, shadowStyle, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
-import type { WarrantyStatus } from "@/utils/warranty";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+import { twMerge } from "tailwind-merge";
 
 type ItemRowStatus = WarrantyStatus | "unknown";
 
@@ -27,29 +20,21 @@ type ItemRowProps = {
   remaining: string;
   icon: ReactNode;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 };
 
-const skins: Record<
-  ItemRowStatus,
-  { backgroundColor: string; color: string }
-> = {
-  covered: {
-    backgroundColor: color.statusCoveredBg,
-    color: color.statusCoveredFg,
-  },
-  expiring: {
-    backgroundColor: color.statusExpiringBg,
-    color: color.statusExpiringFg,
-  },
-  expired: {
-    backgroundColor: color.statusExpiredBg,
-    color: color.statusExpiredFg,
-  },
-  unknown: {
-    backgroundColor: color.statusExpiredBg,
-    color: color.statusExpiredFg,
-  },
+const backgrounds: Record<ItemRowStatus, string> = {
+  covered: "bg-covered-bg",
+  expiring: "bg-expiring-bg",
+  expired: "bg-expired-bg",
+  unknown: "bg-expired-bg",
+};
+
+const foregrounds: Record<ItemRowStatus, string> = {
+  covered: "text-covered-fg",
+  expiring: "text-expiring-fg",
+  expired: "text-expired-fg",
+  unknown: "text-expired-fg",
 };
 
 export function ItemRow({
@@ -59,16 +44,15 @@ export function ItemRow({
   remaining,
   icon,
   onPress,
-  style,
+  className,
 }: ItemRowProps) {
   const scale = useSharedValue(1);
-  const skin = skins[status];
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
   return (
-    <AnimatedPressable
+    <Animated.Pressable
       accessibilityRole="button"
       onPress={onPress}
       onPressIn={() => {
@@ -77,83 +61,38 @@ export function ItemRow({
       onPressOut={() => {
         scale.value = withSpring(1);
       }}
-      style={[styles.base, shadowStyle.sm, animatedStyle, style]}
+      className={twMerge(
+        "shrink-0 flex-row items-center gap-3 rounded-card bg-card py-2.75 pl-2.75 pr-3.5 shadow-sm",
+        className,
+      )}
+      style={animatedStyle}
     >
       <View
-        style={[
-          styles.iconTile,
-          {
-            backgroundColor: skin.backgroundColor,
-          },
-        ]}
+        className={clsx(
+          "size-12.5 shrink-0 items-center justify-center rounded-tile",
+          backgrounds[status],
+        )}
       >
         {icon}
       </View>
-      <View style={styles.content}>
-        <Text style={styles.name} numberOfLines={1}>
+      <View className="min-w-0 flex-1">
+        <Text className="type-heading text-primary" numberOfLines={1}>
           {name}
         </Text>
-        <Text style={styles.meta} numberOfLines={1}>
+        <Text className="type-caption mt-0.75 text-secondary" numberOfLines={1}>
           {meta}
         </Text>
       </View>
       <View
-        style={[
-          styles.pill,
-          {
-            backgroundColor: skin.backgroundColor,
-          },
-        ]}
+        className={clsx(
+          "shrink-0 rounded-pill px-2.75 py-1",
+          backgrounds[status],
+        )}
       >
-        <Text style={[styles.remaining, { color: skin.color }]}>
+        <Text className={clsx("type-caption-semibold", foregrounds[status])}>
           {remaining}
         </Text>
       </View>
-    </AnimatedPressable>
+    </Animated.Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[5],
-    paddingVertical: 11,
-    paddingLeft: 11,
-    paddingRight: 14,
-    borderRadius: radius.card,
-    backgroundColor: color.bgCard,
-    flexShrink: 0,
-  },
-  iconTile: {
-    width: 50,
-    height: 50,
-    borderRadius: radius.tile,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  content: {
-    flex: 1,
-    minWidth: 0,
-  },
-  name: {
-    ...type.heading,
-    color: color.textPrimary,
-  },
-  meta: {
-    ...type.caption,
-    color: color.textSecondary,
-    marginTop: 3,
-  },
-  pill: {
-    paddingHorizontal: 11,
-    paddingVertical: 4,
-    borderRadius: radius.pill,
-    flexShrink: 0,
-  },
-  remaining: {
-    ...type.caption,
-    fontWeight: "600",
-  },
-});

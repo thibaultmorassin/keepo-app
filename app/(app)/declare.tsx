@@ -1,11 +1,9 @@
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
-import { color, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { ScrollView, Text, View } from "@/tw";
 import { haptics } from "@/utils/haptics";
 import { router } from "expo-router";
 import { useCallback } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function DeclareScreen() {
@@ -17,43 +15,20 @@ export default function DeclareScreen() {
   }, []);
 
   return (
-    <View style={styles.screen}>
+    <View className="flex-1 bg-app">
       <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: space[7],
-            paddingBottom: insets.bottom + space[10],
-          },
-        ]}
+        contentContainerClassName="gap-section px-gutter pt-5"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
         showsVerticalScrollIndicator={false}
       >
         <IconButton label="Fermer" onPress={handleClose}>
           <Icon name="x" size={19} />
         </IconButton>
 
-        <Text style={styles.title}>Déclarer un problème</Text>
-        <Text style={styles.subtitle}>Bientôt disponible.</Text>
+        <Text className="type-display text-primary">Déclarer un problème</Text>
+        <Text className="type-body-lg text-secondary">Bientôt disponible.</Text>
       </ScrollView>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: color.bgApp,
-  },
-  content: {
-    paddingHorizontal: space.gutterScreen,
-    gap: space.gapSection,
-  },
-  title: {
-    ...type.display,
-    color: color.textPrimary,
-  },
-  subtitle: {
-    ...type.bodyLg,
-    color: color.textSecondary,
-  },
-});

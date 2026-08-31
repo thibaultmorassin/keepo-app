@@ -1,21 +1,15 @@
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
-import { color, radius, space } from "@/theme/tokens";
-import { fontFamily, type } from "@/theme/typography";
+import { color } from "@/theme/tokens";
+import { Pressable, Text, View } from "@/tw";
 import DateTimePicker, {
   DateTimePickerAndroid,
 } from "@react-native-community/datetimepicker";
+import clsx from "clsx";
 import { useState } from "react";
-import {
-  Platform,
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  View,
-  ViewStyle,
-} from "react-native";
+import { Platform } from "react-native";
+import { twMerge } from "tailwind-merge";
 
 type DateFieldProps = {
   label: string;
@@ -25,7 +19,7 @@ type DateFieldProps = {
   maximumDate?: Date;
   minimumDate?: Date;
   error?: string;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 };
 
 function formatDisplay(date: Date): string {
@@ -47,7 +41,7 @@ export function DateField({
   maximumDate,
   minimumDate,
   error,
-  style,
+  className,
 }: DateFieldProps) {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [draft, setDraft] = useState<Date>(value ?? maximumDate ?? new Date());
@@ -77,8 +71,8 @@ export function DateField({
   }
 
   return (
-    <View style={[styles.wrapper, style]}>
-      <Text style={styles.label}>{label}</Text>
+    <View className={twMerge("gap-1.5", className)}>
+      <Text className="type-micro text-secondary">{label}</Text>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={label}
@@ -86,21 +80,29 @@ export function DateField({
           text: value ? formatDisplay(value) : placeholder,
         }}
         onPress={open}
-        style={[styles.input, error && styles.inputError]}
+        className={clsx(
+          "min-h-11.25 flex-row items-center gap-2 rounded-input border border-line bg-card px-3.5 py-3",
+          error && "border-claim-fg",
+        )}
       >
         <Text
           numberOfLines={1}
-          style={[styles.text, !value && styles.textPlaceholder]}
+          className={clsx(
+            "flex-1 font-sans text-[14.5px]",
+            value ? "text-primary" : "text-muted",
+          )}
         >
           {value ? formatDisplay(value) : placeholder}
         </Text>
         <Icon name="calendar" size={17} color={color.textMuted} />
       </Pressable>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? (
+        <Text className="type-caption text-claim-fg">{error}</Text>
+      ) : null}
 
       <BottomSheet visible={sheetOpen} onClose={() => setSheetOpen(false)}>
-        <Text style={styles.sheetTitle}>{label}</Text>
-        <View style={styles.pickerContainer}>
+        <Text className="type-heading text-center text-primary">{label}</Text>
+        <View className="items-center">
           <DateTimePicker
             value={draft}
             mode="date"
@@ -109,17 +111,17 @@ export function DateField({
             accentColor={color.brand}
             maximumDate={maximumDate}
             minimumDate={minimumDate}
-            style={styles.picker}
+            style={{ height: 216, marginTop: 8 }}
             onValueChange={(_event, date) => {
               if (date) setDraft(date);
             }}
           />
         </View>
-        <View style={styles.sheetActions}>
+        <View className="mt-4 flex-row gap-2">
           <Button
             variant="secondary"
             size="lg"
-            style={styles.sheetAction}
+            className="flex-1"
             onPress={() => setSheetOpen(false)}
           >
             Annuler
@@ -127,7 +129,7 @@ export function DateField({
           <Button
             variant="primary"
             size="lg"
-            style={styles.sheetAction}
+            className="flex-1"
             onPress={confirm}
           >
             Valider
@@ -137,61 +139,3 @@ export function DateField({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    gap: space[3],
-  },
-  label: {
-    ...type.micro,
-    color: color.textSecondary,
-  },
-  input: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[4],
-    borderWidth: 1,
-    borderColor: color.borderSubtle,
-    backgroundColor: color.bgCard,
-    borderRadius: radius.input,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    minHeight: 45,
-  },
-  inputError: {
-    borderColor: color.actionClaimFg,
-  },
-  text: {
-    flex: 1,
-    fontFamily: fontFamily.sans,
-    fontSize: 14.5,
-    color: color.textPrimary,
-  },
-  textPlaceholder: {
-    color: color.textMuted,
-  },
-  errorText: {
-    ...type.caption,
-    color: color.actionClaimFg,
-  },
-  sheetTitle: {
-    ...type.heading,
-    color: color.textPrimary,
-    textAlign: "center",
-  },
-  pickerContainer: {
-    alignItems: "center",
-  },
-  picker: {
-    height: 216,
-    marginTop: space[4],
-  },
-  sheetActions: {
-    flexDirection: "row",
-    gap: space[4],
-    marginTop: space[6],
-  },
-  sheetAction: {
-    flex: 1,
-  },
-});

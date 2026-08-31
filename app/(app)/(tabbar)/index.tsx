@@ -13,7 +13,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { ItemRow } from "@/components/ui/ItemRow";
 import { useSession } from "@/contexts/session";
-import { color, space } from "@/theme/tokens";
+import { color } from "@/theme/tokens";
+import { ScrollView, View } from "@/tw";
 import { claims$, items$ } from "@/utils/SupaLegend";
 import type { Tables } from "@/utils/database.types";
 import { haptics } from "@/utils/haptics";
@@ -30,7 +31,7 @@ import { syncState } from "@legendapp/state";
 import { observer } from "@legendapp/state/react";
 import { type Href, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const FILTER_EMPTY_LABELS: Record<Exclude<WarrantyFilter, null>, string> = {
@@ -110,15 +111,13 @@ function HomeScreen() {
   }, [router]);
 
   return (
-    <View style={styles.screen}>
+    <View className="flex-1 bg-app">
       <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: insets.top + 14,
-            paddingBottom: insets.bottom + 112,
-          },
-        ]}
+        contentContainerClassName="gap-section px-gutter"
+        contentContainerStyle={{
+          paddingTop: insets.top + 14,
+          paddingBottom: insets.bottom + 112,
+        }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -171,7 +170,7 @@ function HomeScreen() {
             <FilterRow value={filter} onChange={setFilter} />
 
             {shownItems.length > 0 ? (
-              <View style={styles.list}>
+              <View className="gap-list">
                 {shownItems.map((item) => {
                   const status = statusOf(item.warranty_end_date);
                   return (
@@ -218,16 +217,3 @@ function HomeScreen() {
 
 export default observer(HomeScreen);
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: color.bgApp,
-  },
-  content: {
-    paddingHorizontal: space.gutterScreen,
-    gap: space.gapSection,
-  },
-  list: {
-    gap: space.gapList,
-  },
-});

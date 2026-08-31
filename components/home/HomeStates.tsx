@@ -1,10 +1,8 @@
-import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
 import { Button } from "@/components/ui/Button";
-import { color, radius, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
-import { supabase } from "@/utils/supabase";
+import { Text, View } from "@/tw";
 import { initialsFrom } from "@/utils/format";
+import { supabase } from "@/utils/supabase";
+import { useEffect, useState } from "react";
 
 export function useProfileInitials(userId?: string, email?: string | null) {
   const [initials, setInitials] = useState(() => initialsFrom(null, null, email));
@@ -35,6 +33,8 @@ export function useProfileInitials(userId?: string, email?: string | null) {
   return initials;
 }
 
+const BASE = "items-center gap-3 rounded-hero bg-sunken px-5 py-6";
+
 type FilterEmptyStateProps = {
   filterLabel: string;
   onReset: () => void;
@@ -45,8 +45,8 @@ export function FilterEmptyState({
   onReset,
 }: FilterEmptyStateProps) {
   return (
-    <View style={styles.base}>
-      <Text style={styles.title}>{filterLabel}</Text>
+    <View className={BASE}>
+      <Text className="type-body text-center text-secondary">{filterLabel}</Text>
       <Button variant="ghost" size="sm" onPress={onReset}>
         Voir tous les objets
       </Button>
@@ -60,8 +60,8 @@ type SyncErrorStateProps = {
 
 export function SyncErrorState({ onRetry }: SyncErrorStateProps) {
   return (
-    <View style={styles.base}>
-      <Text style={styles.title}>
+    <View className={BASE}>
+      <Text className="type-body text-center text-secondary">
         On n&apos;a pas pu récupérer vos garanties.
       </Text>
       <Button variant="secondary" size="sm" onPress={onRetry}>
@@ -70,19 +70,3 @@ export function SyncErrorState({ onRetry }: SyncErrorStateProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    alignItems: "center",
-    gap: space[5],
-    paddingHorizontal: space[7],
-    paddingVertical: space[8],
-    borderRadius: radius.hero,
-    backgroundColor: color.bgSunken,
-  },
-  title: {
-    ...type.body,
-    color: color.textSecondary,
-    textAlign: "center",
-  },
-});

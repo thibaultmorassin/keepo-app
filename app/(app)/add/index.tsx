@@ -2,17 +2,13 @@ import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
-import { color, radius, space } from "@/theme/tokens";
-import { fontFamily, type } from "@/theme/typography";
+import { color } from "@/theme/tokens";
+import { ScrollView, Text, View } from "@/tw";
+import { Animated } from "@/tw/animated";
 import { haptics } from "@/utils/haptics";
 import { router } from "expo-router";
 import { useCallback } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
-import Animated, {
-  FadeIn,
-  FadeInDown,
-  useReducedMotion,
-} from "react-native-reanimated";
+import { FadeIn, FadeInDown, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const STAGGER = 40;
@@ -37,15 +33,10 @@ export default function AddChoiceScreen() {
   }, []);
 
   return (
-    <View style={styles.screen}>
+    <View className="flex-1 bg-app">
       <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: space[7],
-            paddingBottom: insets.bottom + space[10],
-          },
-        ]}
+        contentContainerClassName="gap-section px-gutter pt-5"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
         showsVerticalScrollIndicator={false}
       >
         <Animated.View entering={entering(0)}>
@@ -55,8 +46,8 @@ export default function AddChoiceScreen() {
         </Animated.View>
 
         <Animated.View entering={entering(STAGGER)}>
-          <Text style={styles.title}>Nouvel objet</Text>
-          <Text style={styles.subtitle}>
+          <Text className="type-display text-primary">Nouvel objet</Text>
+          <Text className="type-body-lg mt-2 max-w-[290px] text-secondary">
             Le mieux, c&apos;est de le faire dans le magasin, ticket encore en
             main.
           </Text>
@@ -65,15 +56,15 @@ export default function AddChoiceScreen() {
         {/* Scan is designed but gated behind Pro — deliberately not pressable,
             so it never gives press feedback and then does nothing. */}
         <Animated.View entering={entering(STAGGER * 2)}>
-          <Card tone="brand" size="hero" style={styles.scanCard}>
-            <View style={styles.scanCircle} />
-            <View style={styles.optionRow}>
-              <View style={styles.optionIconInverse}>
+          <Card tone="brand" size="hero" className="overflow-hidden">
+            <View className="absolute -bottom-[50px] -right-10 size-[150px] rounded-pill bg-on-dark/13" />
+            <View className="flex-row gap-3.5">
+              <View className="size-12 shrink-0 items-center justify-center rounded-pill bg-on-dark/20">
                 <Icon name="scan-line" size={24} color={color.textOnDark} />
               </View>
-              <View style={styles.optionCopy}>
-                <View style={styles.optionTitleRow}>
-                  <Text style={[styles.optionTitle, styles.optionTitleOnDark]}>
+              <View className="min-w-0 flex-1">
+                <View className="flex-row flex-wrap items-center gap-2">
+                  <Text className="font-display-bold text-[19px]/[23px] font-bold tracking-[-0.285px] text-on-dark">
                     Scanner le reçu
                   </Text>
                   <Badge
@@ -90,7 +81,7 @@ export default function AddChoiceScreen() {
                     Pro
                   </Badge>
                 </View>
-                <Text style={[styles.optionBody, styles.optionBodyOnDark]}>
+                <Text className="type-body mt-[5px] text-on-dark opacity-90">
                   On lit le magasin, la date, le prix et la durée — vous
                   n&apos;avez plus qu&apos;à vérifier.
                 </Text>
@@ -101,13 +92,13 @@ export default function AddChoiceScreen() {
 
         <Animated.View entering={entering(STAGGER * 3)}>
           <Card tone="plain" size="hero" onPress={handleManual}>
-            <View style={styles.optionRow}>
-              <View style={styles.optionIconTint}>
+            <View className="flex-row gap-3.5">
+              <View className="size-12 shrink-0 items-center justify-center rounded-pill bg-brand-tint">
                 <Icon name="pencil" size={23} color={color.brandStrong} />
               </View>
-              <View style={styles.optionCopy}>
-                <Text style={styles.optionTitle}>Saisir à la main</Text>
-                <Text style={styles.optionBody}>
+              <View className="min-w-0 flex-1">
+                <Text className="font-display-bold text-[19px]/[23px] font-bold tracking-[-0.285px] text-primary">Saisir à la main</Text>
+                <Text className="type-body mt-[5px] text-secondary">
                   Six champs, une minute. Vous pourrez ajouter le reçu plus
                   tard.
                 </Text>
@@ -116,11 +107,16 @@ export default function AddChoiceScreen() {
           </Card>
         </Animated.View>
 
-        <Animated.View entering={entering(STAGGER * 4)} style={styles.forward}>
+        <Animated.View
+          entering={entering(STAGGER * 4)}
+          className="flex-row items-center gap-[11px] rounded-card border border-dashed border-line-strong px-4 py-3.5"
+        >
           <Icon name="mail" size={19} color={color.brand} />
-          <Text style={styles.forwardText}>
+          <Text className="type-body flex-1 text-secondary">
             Ou transférez le mail de confirmation à{" "}
-            <Text style={styles.forwardAddress}>{FORWARDING_ADDRESS}</Text>
+            <Text className="font-sans-semibold font-semibold text-brand-strong">
+              {FORWARDING_ADDRESS}
+            </Text>
           </Text>
         </Animated.View>
       </ScrollView>
@@ -128,108 +124,3 @@ export default function AddChoiceScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: color.bgApp,
-  },
-  content: {
-    paddingHorizontal: space.gutterScreen,
-    gap: space.gapSection,
-  },
-  title: {
-    ...type.display,
-    color: color.textPrimary,
-  },
-  subtitle: {
-    ...type.bodyLg,
-    color: color.textSecondary,
-    marginTop: space[4],
-    maxWidth: 290,
-  },
-  scanCard: {
-    overflow: "hidden",
-  },
-  scanCircle: {
-    position: "absolute",
-    right: -40,
-    bottom: -50,
-    width: 150,
-    height: 150,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(252,250,246,0.13)",
-  },
-  optionRow: {
-    flexDirection: "row",
-    gap: 14,
-  },
-  optionIconInverse: {
-    width: 48,
-    height: 48,
-    flexShrink: 0,
-    borderRadius: radius.pill,
-    backgroundColor: "rgba(252,250,246,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  optionIconTint: {
-    width: 48,
-    height: 48,
-    flexShrink: 0,
-    borderRadius: radius.pill,
-    backgroundColor: color.brandTint,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  optionCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  optionTitleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[4],
-    flexWrap: "wrap",
-  },
-  optionTitle: {
-    fontFamily: fontFamily.displayBold,
-    fontSize: 19,
-    lineHeight: 23,
-    fontWeight: "700",
-    letterSpacing: -0.285,
-    color: color.textPrimary,
-  },
-  optionTitleOnDark: {
-    color: color.textOnDark,
-  },
-  optionBody: {
-    ...type.body,
-    color: color.textSecondary,
-    marginTop: 5,
-  },
-  optionBodyOnDark: {
-    color: color.textOnDark,
-    opacity: 0.9,
-  },
-  forward: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 11,
-    paddingVertical: 14,
-    paddingHorizontal: space[6],
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: color.borderStrong,
-  },
-  forwardText: {
-    ...type.body,
-    color: color.textSecondary,
-    flex: 1,
-  },
-  forwardAddress: {
-    fontFamily: fontFamily.sansSemiBold,
-    fontWeight: "600",
-    color: color.brandStrong,
-  },
-});

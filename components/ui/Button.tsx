@@ -1,22 +1,11 @@
-import { color, motion, radius, shadowStyle, space } from "@/theme/tokens";
-import { fontFamily } from "@/theme/typography";
+import { color, motion } from "@/theme/tokens";
+import { Text, View } from "@/tw";
+import { Animated } from "@/tw/animated";
+import clsx from "clsx";
 import { ReactNode } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  View,
-  ViewStyle,
-} from "react-native";
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+import { ActivityIndicator } from "react-native";
+import { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import { twMerge } from "tailwind-merge";
 
 type ButtonVariant = "primary" | "secondary" | "ghost" | "claim" | "inverse";
 type ButtonSize = "sm" | "md" | "lg";
@@ -31,45 +20,44 @@ type ButtonProps = {
   disabled?: boolean;
   loading?: boolean;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 };
 
-const skins: Record<
-  ButtonVariant,
-  { backgroundColor: string; color: string; shadow?: ViewStyle }
-> = {
-  primary: {
-    backgroundColor: color.brand,
-    color: color.textOnDark,
-    shadow: shadowStyle.card,
-  },
-  secondary: {
-    backgroundColor: color.bgSunken,
-    color: color.textPrimary,
-  },
-  ghost: {
-    backgroundColor: "transparent",
-    color: color.textSecondary,
-  },
-  claim: {
-    backgroundColor: color.actionClaimSolid,
-    color: color.textOnDark,
-    shadow: shadowStyle.card,
-  },
-  inverse: {
-    backgroundColor: color.bgInverse,
-    color: color.textOnDark,
-    shadow: shadowStyle.card,
-  },
+const variants: Record<ButtonVariant, string> = {
+  primary: "bg-brand shadow-card",
+  secondary: "bg-sunken",
+  ghost: "bg-transparent",
+  claim: "bg-claim-solid shadow-card",
+  inverse: "bg-inverse shadow-card",
 };
 
-const sizes: Record<
-  ButtonSize,
-  { paddingVertical: number; paddingHorizontal: number; fontSize: number }
-> = {
-  sm: { paddingVertical: 8, paddingHorizontal: 14, fontSize: 13 },
-  md: { paddingVertical: 14, paddingHorizontal: 20, fontSize: 14.5 },
-  lg: { paddingVertical: 16, paddingHorizontal: 24, fontSize: 16 },
+const labels: Record<ButtonVariant, string> = {
+  primary: "text-on-dark",
+  secondary: "text-primary",
+  ghost: "text-secondary",
+  claim: "text-on-dark",
+  inverse: "text-on-dark",
+};
+
+/** The spinner takes a colour value, not a class. */
+const spinnerColors: Record<ButtonVariant, string> = {
+  primary: color.textOnDark,
+  secondary: color.textPrimary,
+  ghost: color.textSecondary,
+  claim: color.textOnDark,
+  inverse: color.textOnDark,
+};
+
+const sizes: Record<ButtonSize, string> = {
+  sm: "px-3.5 py-2",
+  md: "px-5 py-3.5",
+  lg: "px-6 py-4",
+};
+
+const labelSizes: Record<ButtonSize, string> = {
+  sm: "text-[13px]",
+  md: "text-[14.5px]",
+  lg: "text-[16px]",
 };
 
 export function Button({
@@ -82,11 +70,9 @@ export function Button({
   disabled = false,
   loading = false,
   onPress,
-  style,
+  className,
 }: ButtonProps) {
   const scale = useSharedValue(1);
-  const skin = skins[variant];
-  const sizeStyle = sizes[size];
   const isDisabled = disabled || loading;
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -94,7 +80,7 @@ export function Button({
   }));
 
   return (
-    <AnimatedPressable
+    <Animated.Pressable
       accessibilityRole="button"
       disabled={isDisabled}
       onPress={onPress}
@@ -104,64 +90,35 @@ export function Button({
       onPressOut={() => {
         scale.value = withSpring(1);
       }}
-      style={[
-        styles.base,
-        {
-          backgroundColor: skin.backgroundColor,
-          paddingVertical: sizeStyle.paddingVertical,
-          paddingHorizontal: sizeStyle.paddingHorizontal,
-          width: full ? "100%" : undefined,
-          alignSelf: full ? "stretch" : "flex-start",
-        },
-        skin.shadow,
-        animatedStyle,
-        style,
-        isDisabled ? styles.disabled : undefined,
-      ]}
+      className={twMerge(
+        clsx(
+          "min-h-tap items-center justify-center rounded-pill",
+          sizes[size],
+          variants[variant],
+          full ? "w-full self-stretch" : "self-start",
+        ),
+        className,
+        isDisabled && "bg-muted",
+      )}
+      style={animatedStyle}
     >
       {loading ? (
-        <ActivityIndicator color={skin.color} />
+        <ActivityIndicator color={spinnerColors[variant]} />
       ) : (
-        <View style={styles.content}>
+        <View className="flex-row items-center justify-center gap-2">
           {icon}
           <Text
-            style={[
-              styles.label,
-              {
-                color: skin.color,
-                fontSize: sizeStyle.fontSize,
-              },
-            ]}
+            className={clsx(
+              "font-display font-semibold tracking-[-0.15px]",
+              labelSizes[size],
+              isDisabled ? "text-on-dark" : labels[variant],
+            )}
           >
             {children}
           </Text>
           {iconAfter}
         </View>
       )}
-    </AnimatedPressable>
+    </Animated.Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    minHeight: space.tapMin,
-    borderRadius: radius.pill,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  content: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: space[4],
-  },
-  label: {
-    fontFamily: fontFamily.display,
-    fontWeight: "600",
-    letterSpacing: -0.15,
-  },
-  disabled: {
-    backgroundColor: color.textMuted,
-    color: color.textOnDark,
-  },
-});

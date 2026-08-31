@@ -1,21 +1,13 @@
 import { Icon, type IconName } from "@/components/ui/Icon";
-import { color, motion, radius, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { color, motion } from "@/theme/tokens";
+import { Text, View } from "@/tw";
+import { Animated } from "@/tw/animated";
 import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  View,
-  ViewStyle,
-} from "react-native";
-import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+import { twMerge } from "tailwind-merge";
 
 type SettingsRowProps = {
   icon?: IconName;
@@ -24,7 +16,7 @@ type SettingsRowProps = {
   meta?: string;
   onPress?: () => void;
   showChevron?: boolean;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 };
 
 /**
@@ -40,7 +32,7 @@ export function SettingsRow({
   meta,
   onPress,
   showChevron = true,
-  style,
+  className,
 }: SettingsRowProps) {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
@@ -48,24 +40,32 @@ export function SettingsRow({
   }));
 
   const content = (
-    <View style={[styles.row, style]}>
+    <View
+      className={twMerge(
+        "min-h-tap flex-row items-center gap-3 py-3.25",
+        className,
+      )}
+    >
       {icon ? (
-        <View style={styles.iconCircle}>
+        <View className="size-8.5 shrink-0 items-center justify-center rounded-pill bg-brand-tint">
           <Icon name={icon} size={17} color={color.brandStrong} />
         </View>
       ) : null}
-      <View style={styles.copy}>
-        <Text numberOfLines={1} style={styles.label}>
+      <View className="min-w-0 flex-1">
+        <Text numberOfLines={1} className="type-body text-primary">
           {label}
         </Text>
         {meta ? (
-          <Text numberOfLines={1} style={styles.meta}>
+          <Text numberOfLines={1} className="type-caption mt-px text-secondary">
             {meta}
           </Text>
         ) : null}
       </View>
       {value ? (
-        <Text numberOfLines={1} style={styles.value}>
+        <Text
+          numberOfLines={1}
+          className="type-body max-w-[45%] shrink text-secondary"
+        >
           {value}
         </Text>
       ) : null}
@@ -78,7 +78,7 @@ export function SettingsRow({
   if (!onPress) return content;
 
   return (
-    <AnimatedPressable
+    <Animated.Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={onPress}
@@ -91,44 +91,6 @@ export function SettingsRow({
       style={animatedStyle}
     >
       {content}
-    </AnimatedPressable>
+    </Animated.Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[5],
-    minHeight: space.tapMin,
-    paddingVertical: 13,
-  },
-  iconCircle: {
-    width: 34,
-    height: 34,
-    flexShrink: 0,
-    borderRadius: radius.pill,
-    backgroundColor: color.brandTint,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  copy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  label: {
-    ...type.body,
-    color: color.textPrimary,
-  },
-  meta: {
-    ...type.caption,
-    color: color.textSecondary,
-    marginTop: 1,
-  },
-  value: {
-    ...type.body,
-    color: color.textSecondary,
-    flexShrink: 1,
-    maxWidth: "45%",
-  },
-});

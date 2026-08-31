@@ -1,17 +1,18 @@
 import { Button } from "@/components/ui/Button";
 import { Icon, type IconName } from "@/components/ui/Icon";
-import { color, radius, shadowStyle, space } from "@/theme/tokens";
+import { color } from "@/theme/tokens";
+import { Pressable, View } from "@/tw";
 import { haptics } from "@/utils/haptics";
+import clsx from "clsx";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, usePathname } from "expo-router";
-import { Pressable, StyleSheet, View } from "react-native";
 
 const IDLE_COLOR = "rgba(252,250,246,0.45)";
 
-// Wrapper paddingBottom (30) + pill height (paddingVertical 7*2 + the
-// Ajouter button's 40px minHeight) — the space the floating pill actually
-// occupies from the bottom of the screen. Screens with their own fixed
-// bottom content (e.g. item detail's claim CTA) use this to sit above it.
+// Wrapper paddingBottom (30) + pill height (padding 7*2 + the Ajouter button's
+// 40px minHeight) — the space the floating pill actually occupies from the
+// bottom of the screen. Screens with their own fixed bottom content (e.g. item
+// detail's claim CTA) use this to sit above it.
 export const TAB_BAR_HEIGHT = 84;
 
 type TabId = "home" | "declaration" | "settings";
@@ -51,14 +52,17 @@ export function TabBar() {
   ];
 
   return (
-    <View style={styles.wrapper} pointerEvents="box-none">
+    <View
+      className="absolute inset-x-0 bottom-0 px-5 pb-7.5"
+      pointerEvents="box-none"
+    >
       <LinearGradient
         colors={[color.bgApp, `${color.bgApp}00`]}
-        style={styles.gradient}
+        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
         pointerEvents="none"
       />
-      <View style={styles.pill}>
-        <View style={styles.icons}>
+      <View className="flex-row items-center gap-2 rounded-pill bg-inverse p-1.75 shadow-lift">
+        <View className="flex-1 flex-row items-center gap-1.5">
           {items.map((item) => (
             <Pressable
               key={item.id}
@@ -69,10 +73,10 @@ export function TabBar() {
                 item.onPress();
               }}
               hitSlop={10}
-              style={StyleSheet.flatten([
-                styles.iconButton,
-                active === item.id && styles.iconButtonActive,
-              ])}
+              className={clsx(
+                "aspect-square h-full items-center justify-center transition-all active:scale-[95%] rounded-full",
+                active === item.id && "bg-on-dark/10",
+              )}
             >
               <Icon
                 name={item.icon}
@@ -97,7 +101,7 @@ export function TabBar() {
             haptics.light();
             router.push("/add");
           }}
-          style={styles.addButton}
+          className="min-h-10"
         >
           Ajouter
         </Button>
@@ -105,45 +109,3 @@ export function TabBar() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-  },
-  gradient: {
-    ...StyleSheet.absoluteFill,
-  },
-  pill: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[4],
-    padding: space[3] + 1,
-    borderRadius: radius.pill,
-    backgroundColor: color.bgInverse,
-    ...shadowStyle.lift,
-  },
-  icons: {
-    flex: 1,
-    flexDirection: "row",
-    gap: space[3],
-    alignItems: "center",
-  },
-  iconButton: {
-    aspectRatio: 1,
-    height: "100%",
-    borderRadius: 999,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  iconButtonActive: {
-    backgroundColor: "rgba(252,250,246,0.1)",
-  },
-  addButton: {
-    minHeight: 40,
-  },
-});

@@ -10,8 +10,8 @@ import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { SettingsRow } from "@/components/ui/SettingsRow";
 import { Switch } from "@/components/ui/Switch";
 import { useSession } from "@/contexts/session";
-import { color, space } from "@/theme/tokens";
-import { fontFamily, type } from "@/theme/typography";
+import { color } from "@/theme/tokens";
+import { ScrollView, Text, View } from "@/tw";
 import { haptics } from "@/utils/haptics";
 import {
   type ProfilePrefs,
@@ -20,14 +20,7 @@ import {
 } from "@/utils/profile";
 import Constants from "expo-constants";
 import { useCallback, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Alert } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const REMINDER_OPTIONS = ["7j", "30j", "60j", "90j"] as const;
@@ -59,7 +52,7 @@ const AIDE_ROWS = [
 
 function SettingsSkeleton() {
   return (
-    <View style={styles.skeleton}>
+    <View className="items-center py-10">
       <ActivityIndicator color={color.brand} />
     </View>
   );
@@ -121,21 +114,19 @@ export default function SettingsScreen() {
     .join(" ");
 
   return (
-    <View style={styles.screen}>
+    <View className="flex-1 bg-app">
       <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: insets.top + space[11],
-            paddingBottom: insets.bottom + 120,
-          },
-        ]}
+        contentContainerClassName="gap-section px-gutter"
+        contentContainerStyle={{
+          paddingTop: insets.top + 56,
+          paddingBottom: insets.bottom + 120,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <View style={styles.headerCopy}>
-            <Text style={styles.eyebrow}>VOTRE COMPTE</Text>
-            <Text style={styles.title}>Réglages</Text>
+        <View className="flex-row items-center gap-3 pt-3">
+          <View className="flex-1">
+            <Text className="type-micro text-secondary">VOTRE COMPTE</Text>
+            <Text className="type-display mt-[3px] text-primary">Réglages</Text>
           </View>
         </View>
 
@@ -147,25 +138,33 @@ export default function SettingsScreen() {
 
         {prefs && !showLoading && !showSyncError ? (
           <>
-            <Card tone="plain" size="hero" style={styles.accountCard}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarInitials}>{initials}</Text>
+            <Card tone="plain" size="hero" className="flex-row items-center gap-3">
+              <View className="size-12 shrink-0 items-center justify-center rounded-full bg-brand-tint">
+                <Text className="type-heading text-[16px]/[19px] text-brand-strong">
+                  {initials}
+                </Text>
               </View>
-              <View style={styles.accountCopy}>
-                <Text numberOfLines={1} style={styles.accountName}>
+              <View className="min-w-0 flex-1">
+                <Text
+                  numberOfLines={1}
+                  className="type-body-semibold text-primary"
+                >
                   {fullName || "Votre compte"}
                 </Text>
-                <Text numberOfLines={1} style={styles.accountEmail}>
+                <Text
+                  numberOfLines={1}
+                  className="type-caption mt-0.5 text-secondary"
+                >
                   {session?.user.email}
                 </Text>
               </View>
               <Badge status="free">Gratuit</Badge>
             </Card>
 
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>IDENTITÉ</Text>
-              <Card pad={0} style={styles.rowsCard}>
-                <View style={styles.rowWrapper}>
+            <View className="gap-2">
+              <Text className="type-micro text-secondary">IDENTITÉ</Text>
+              <Card pad={0} className="px-card-lg py-1.5">
+                <View className="border-b border-line">
                   <SettingsRow
                     label="E-mail"
                     value={session?.user.email ?? "—"}
@@ -175,7 +174,7 @@ export default function SettingsScreen() {
                     }}
                   />
                 </View>
-                <View style={[styles.rowWrapper, styles.rowWrapperLast]}>
+                <View>
                   <SettingsRow
                     label="Mot de passe"
                     onPress={() => {
@@ -187,22 +186,12 @@ export default function SettingsScreen() {
               </Card>
             </View>
 
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>NOTIFICATIONS</Text>
+            <View className="gap-2">
+              <Text className="type-micro text-secondary">NOTIFICATIONS</Text>
 
-              <Card
-                pad={0}
-                style={[
-                  styles.rowsCard,
-                  {
-                    gap: space[6],
-                    paddingTop: space[6],
-                    paddingBottom: space[7],
-                  },
-                ]}
-              >
-                <View style={[{ gap: space[4] }]}>
-                  <Text style={styles.groupLabel}>
+              <Card pad={0} className="gap-4 px-card-lg pb-5 pt-4">
+                <View className="gap-2">
+                  <Text className="type-body-medium text-primary">
                     Me prévenir avant la fin d&apos;une garantie
                   </Text>
                   <SegmentedControl
@@ -255,18 +244,15 @@ export default function SettingsScreen() {
               </Card>
             </View>
 
-            <View style={styles.section}>
-              <Text style={styles.sectionLabel}>AIDE</Text>
-              <Card pad={0} style={styles.rowsCard}>
+            <View className="gap-2">
+              <Text className="type-micro text-secondary">AIDE</Text>
+              <Card pad={0} className="px-card-lg py-1.5">
                 {AIDE_ROWS.map((row, index) => (
                   <View
                     key={row.label}
-                    style={[
-                      styles.rowWrapper,
-                      index === AIDE_ROWS.length - 1
-                        ? styles.rowWrapperLast
-                        : null,
-                    ]}
+                    className={
+                      index === AIDE_ROWS.length - 1 ? "" : "border-b border-line"
+                    }
                   >
                     <SettingsRow
                       icon={row.icon}
@@ -291,7 +277,7 @@ export default function SettingsScreen() {
               Se déconnecter
             </Button>
 
-            <Text style={styles.version}>
+            <Text className="type-caption text-center text-muted">
               Keepo {Constants.expoConfig?.version ?? "1.0.0"}
             </Text>
           </>
@@ -307,101 +293,3 @@ export default function SettingsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: color.bgApp,
-  },
-  content: {
-    paddingHorizontal: space.gutterScreen,
-    gap: space.gapSection,
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[5],
-    paddingTop: space[5],
-  },
-  headerCopy: {
-    flex: 1,
-  },
-  eyebrow: {
-    ...type.micro,
-    color: color.textSecondary,
-  },
-  title: {
-    ...type.display,
-    color: color.textPrimary,
-    marginTop: 3,
-  },
-  skeleton: {
-    paddingVertical: space[10],
-    alignItems: "center",
-  },
-  accountCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[5],
-  },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 999,
-    backgroundColor: color.brandTint,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  avatarInitials: {
-    ...type.heading,
-    color: color.brandStrong,
-    fontSize: 16,
-    lineHeight: 19,
-  },
-  accountCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  accountName: {
-    ...type.body,
-    fontFamily: fontFamily.sansSemiBold,
-    fontWeight: "600",
-    color: color.textPrimary,
-  },
-  accountEmail: {
-    ...type.caption,
-    color: color.textSecondary,
-    marginTop: 2,
-  },
-  section: {
-    gap: space[4],
-  },
-  sectionLabel: {
-    ...type.micro,
-    color: color.textSecondary,
-  },
-  rowsCard: {
-    paddingHorizontal: space.padCardLg,
-    paddingVertical: 6,
-  },
-  rowWrapper: {
-    borderBottomWidth: 1,
-    borderBottomColor: color.borderSubtle,
-  },
-  rowWrapperLast: {
-    borderBottomWidth: 0,
-  },
-  group: {
-    gap: space[4],
-  },
-  groupLabel: {
-    ...type.body,
-    fontWeight: "500",
-    color: color.textPrimary,
-  },
-  version: {
-    ...type.caption,
-    color: color.textMuted,
-    textAlign: "center",
-  },
-});

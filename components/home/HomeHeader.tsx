@@ -1,8 +1,5 @@
-import { color, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { Link, Pressable, Text, View } from "@/tw";
 import { formatEyebrowDate } from "@/utils/format";
-import { Link } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type HomeHeaderProps = {
   initials: string;
@@ -10,52 +7,21 @@ type HomeHeaderProps = {
 
 export function HomeHeader({ initials }: HomeHeaderProps) {
   return (
-    <View style={styles.row}>
-      <View style={styles.copy}>
-        <Text style={styles.eyebrow}>{formatEyebrowDate()}</Text>
-        <Text style={styles.title}>Vos garanties</Text>
+    <View className="shrink-0 flex-row items-start gap-3">
+      <View className="flex-1">
+        <Text className="type-micro text-secondary">{formatEyebrowDate()}</Text>
+        <Text className="type-display mt-0.75 text-primary">Vos garanties</Text>
       </View>
       <Link href="/settings" asChild>
-        <Pressable style={styles.avatar} hitSlop={10}>
-          <Text style={styles.initials}>{initials}</Text>
+        <Pressable
+          className="size-10.5 shrink-0 items-center justify-center rounded-full bg-brand-tint"
+          hitSlop={10}
+        >
+          <Text className="type-heading text-[15px]/[18px] text-brand-strong">
+            {initials}
+          </Text>
         </Pressable>
       </Link>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    gap: space[5],
-    flexShrink: 0,
-  },
-  copy: {
-    flex: 1,
-  },
-  eyebrow: {
-    ...type.micro,
-    color: color.textSecondary,
-  },
-  title: {
-    ...type.display,
-    color: color.textPrimary,
-    marginTop: 3,
-  },
-  avatar: {
-    width: 42,
-    height: 42,
-    borderRadius: 999,
-    backgroundColor: color.brandTint,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  initials: {
-    ...type.heading,
-    color: color.brandStrong,
-    fontSize: 15,
-    lineHeight: 18,
-  },
-});

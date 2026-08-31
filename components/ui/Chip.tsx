@@ -1,20 +1,14 @@
+import { motion } from "@/theme/tokens";
+import { Text } from "@/tw";
+import { Animated } from "@/tw/animated";
+import clsx from "clsx";
 import { ReactNode } from "react";
 import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  ViewStyle,
-} from "react-native";
-import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { color, motion, radius, space } from "@/theme/tokens";
-import { fontFamily } from "@/theme/typography";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+import { twMerge } from "tailwind-merge";
 
 type ChipTone = "brand" | "neutral";
 
@@ -23,7 +17,12 @@ type ChipProps = {
   selected?: boolean;
   tone?: ChipTone;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
+};
+
+const selectedTones: Record<ChipTone, string> = {
+  brand: "bg-brand border-transparent",
+  neutral: "bg-inverse border-transparent",
 };
 
 export function Chip({
@@ -31,20 +30,15 @@ export function Chip({
   selected = false,
   tone = "brand",
   onPress,
-  style,
+  className,
 }: ChipProps) {
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
-  const selectedStyle =
-    tone === "neutral"
-      ? { backgroundColor: color.bgInverse, borderColor: "transparent" }
-      : { backgroundColor: color.brand, borderColor: "transparent" };
-
   return (
-    <AnimatedPressable
+    <Animated.Pressable
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
@@ -54,44 +48,23 @@ export function Chip({
       onPressOut={() => {
         scale.value = withSpring(1);
       }}
-      style={[
-        styles.base,
-        selected ? selectedStyle : styles.unselected,
-        animatedStyle,
-        style,
-      ]}
+      className={twMerge(
+        clsx(
+          "min-h-tap shrink-0 items-center justify-center rounded-chip border px-3.75 py-list",
+          selected ? selectedTones[tone] : "border-line bg-transparent",
+        ),
+        className,
+      )}
+      style={animatedStyle}
     >
       <Text
-        style={[
-          styles.label,
-          { color: selected ? color.textOnDark : color.textSecondary },
-        ]}
+        className={clsx(
+          "font-sans-medium text-[13px]/[16px] font-medium",
+          selected ? "text-on-dark" : "text-secondary",
+        )}
       >
         {children}
       </Text>
-    </AnimatedPressable>
+    </Animated.Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    minHeight: space.tapMin,
-    paddingHorizontal: 15,
-    paddingVertical: 9,
-    borderRadius: radius.chip,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  unselected: {
-    backgroundColor: "transparent",
-    borderColor: color.borderSubtle,
-  },
-  label: {
-    fontFamily: fontFamily.sansMedium,
-    fontSize: 13,
-    lineHeight: 16,
-    fontWeight: "500",
-  },
-});

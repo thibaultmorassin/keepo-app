@@ -1,8 +1,7 @@
-import { StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
-import { color, radius, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { color } from "@/theme/tokens";
+import { Text, View } from "@/tw";
 import type { ItemRow } from "@/utils/warranty";
 import { remainingDays } from "@/utils/warranty";
 
@@ -19,66 +18,20 @@ export function ExpiringAlert({ item, onPress }: ExpiringAlertProps) {
       tone="plain"
       onPress={onPress}
       pad={0}
-      style={styles.card}
+      className="flex-row items-center gap-3 bg-expiring-bg py-3.25 pl-3.25 pr-card shadow-none"
     >
-      <View style={styles.iconPuck}>
-        <Icon
-          name="bell-ring"
-          size={18}
-          color={color.statusExpiringFg}
-        />
+      <View className="size-9 shrink-0 items-center justify-center rounded-pill bg-amber-200">
+        <Icon name="bell-ring" size={18} color={color.statusExpiringFg} />
       </View>
-      <View style={styles.copy}>
-        <Text style={styles.headline}>
+      <View className="min-w-0 flex-1">
+        <Text className="type-body-semibold text-expiring-fg">
           {item.title} — plus que {days} jours
         </Text>
-        <Text style={styles.subline}>
+        <Text className="type-caption mt-0.5 text-amber-700 opacity-[0.82]">
           Dernier moment pour déclarer un souci
         </Text>
       </View>
-      <Icon
-        name="chevron-right"
-        size={17}
-        color={color.statusExpiringFg}
-      />
+      <Icon name="chevron-right" size={17} color={color.statusExpiringFg} />
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[5],
-    backgroundColor: color.statusExpiringBg,
-    paddingVertical: 13,
-    paddingLeft: 13,
-    paddingRight: space.padCard,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  iconPuck: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.pill,
-    backgroundColor: color.amber200,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  copy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  headline: {
-    ...type.body,
-    fontWeight: "600",
-    color: color.statusExpiringFg,
-  },
-  subline: {
-    ...type.caption,
-    color: color.amber700,
-    opacity: 0.82,
-    marginTop: 2,
-  },
-});

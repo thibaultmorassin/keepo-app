@@ -1,21 +1,14 @@
-import { color, radius } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { Pressable, Text, View } from "@/tw";
+import { Animated } from "@/tw/animated";
+import clsx from "clsx";
 import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  View,
-  ViewStyle,
-} from "react-native";
-import Animated, {
   useAnimatedStyle,
   useReducedMotion,
   withTiming,
 } from "react-native-reanimated";
+import { twMerge } from "tailwind-merge";
 
 const TRACK_WIDTH = 48;
-const TRACK_HEIGHT = 28;
 const THUMB_SIZE = 22;
 const THUMB_INSET = 3;
 
@@ -24,7 +17,7 @@ type SwitchProps = {
   onValueChange: (next: boolean) => void;
   label?: string;
   description?: string;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 };
 
 function Toggle({
@@ -49,9 +42,15 @@ function Toggle({
       accessibilityState={{ checked: value }}
       accessibilityLabel={label}
       onPress={() => onValueChange(!value)}
-      style={[styles.track, value && styles.trackOn]}
+      className={clsx(
+        "h-7 w-12 shrink-0 justify-center rounded-pill",
+        value ? "bg-brand" : "bg-paper-3",
+      )}
     >
-      <Animated.View style={[styles.thumb, thumbStyle]} />
+      <Animated.View
+        className="size-5.5 rounded-pill bg-card"
+        style={thumbStyle}
+      />
     </Pressable>
   );
 }
@@ -62,7 +61,7 @@ export function Switch({
   onValueChange,
   label,
   description,
-  style,
+  className,
 }: SwitchProps) {
   const toggle = (
     <Toggle value={value} onValueChange={onValueChange} label={label} />
@@ -71,52 +70,16 @@ export function Switch({
   if (!label) return toggle;
 
   return (
-    <View style={[styles.row, style]}>
-      <View style={styles.copy}>
-        <Text style={styles.label}>{label}</Text>
-        {description ? <Text style={styles.description}>{description}</Text> : null}
+    <View className={twMerge("flex-row items-center gap-3", className)}>
+      <View className="min-w-0 flex-1">
+        <Text className="type-body-medium text-primary">{label}</Text>
+        {description ? (
+          <Text className="type-caption mt-0.5 text-brand-strong opacity-75">
+            {description}
+          </Text>
+        ) : null}
       </View>
       {toggle}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  copy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  label: {
-    ...type.body,
-    fontWeight: "500",
-    color: color.textPrimary,
-  },
-  description: {
-    ...type.caption,
-    color: color.brandStrong,
-    opacity: 0.75,
-    marginTop: 2,
-  },
-  track: {
-    width: TRACK_WIDTH,
-    height: TRACK_HEIGHT,
-    flexShrink: 0,
-    borderRadius: radius.pill,
-    backgroundColor: color.paper3,
-    justifyContent: "center",
-  },
-  trackOn: {
-    backgroundColor: color.brand,
-  },
-  thumb: {
-    width: THUMB_SIZE,
-    height: THUMB_SIZE,
-    borderRadius: radius.pill,
-    backgroundColor: color.bgCard,
-  },
-});

@@ -1,7 +1,8 @@
 import { color } from "@/theme/tokens";
 import { useEffect, useMemo } from "react";
-import { View } from "react-native";
-import Animated, {
+import { View } from "@/tw";
+import { Animated } from "@/tw/animated";
+import {
   Easing,
   interpolate,
   useAnimatedStyle,
@@ -73,14 +74,10 @@ const ConfettiPiece = ({
   return (
     <Animated.View
       pointerEvents="none"
+      className="absolute rounded-xs"
+      // Size and colour are randomised per shard, so they cannot be classes.
       style={[
-        {
-          position: "absolute",
-          width: size,
-          height: size * 0.5,
-          borderRadius: 2,
-          backgroundColor: color,
-        },
+        { width: size, height: size * 0.5, backgroundColor: color },
         animatedStyle,
       ]}
     />
@@ -109,11 +106,7 @@ function Confetti({ testID }: { testID?: string }) {
     <View
       pointerEvents="none"
       testID={testID}
-      style={{
-        position: "absolute",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
+      className="absolute items-center justify-center"
     >
       {CONFETTI_PIECES.map((piece) => (
         <ConfettiPiece

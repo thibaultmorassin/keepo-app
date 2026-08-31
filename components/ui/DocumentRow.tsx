@@ -1,21 +1,14 @@
+import { motion } from "@/theme/tokens";
+import { Text, View } from "@/tw";
+import { Animated } from "@/tw/animated";
+import clsx from "clsx";
 import { ReactNode } from "react";
 import {
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  View,
-  ViewStyle,
-} from "react-native";
-import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { color, motion, radius, shadowStyle, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
-
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+import { twMerge } from "tailwind-merge";
 
 type DocumentRowTone = "plain" | "tint";
 
@@ -25,8 +18,15 @@ type DocumentRowProps = {
   tone?: DocumentRowTone;
   action?: ReactNode;
   onPress?: () => void;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 };
+
+const tones: Record<DocumentRowTone, string> = {
+  plain: "bg-card shadow-sm",
+  tint: "bg-brand-tint",
+};
+
+const BASE = "shrink-0 flex-row items-center gap-3 rounded-card py-3 pl-3 pr-4";
 
 export function DocumentRow({
   name,
@@ -34,7 +34,7 @@ export function DocumentRow({
   tone = "plain",
   action,
   onPress,
-  style,
+  className,
 }: DocumentRowProps) {
   const scale = useSharedValue(1);
 
@@ -44,18 +44,18 @@ export function DocumentRow({
 
   const content = (
     <>
-      <View style={styles.thumbnail}>
-        <View style={[styles.line, styles.lineShort]} />
-        <View style={styles.line} />
-        <View style={[styles.line, styles.lineMid]} />
-        <View style={[styles.line, styles.lineShortest]} />
-        <View style={styles.accent} />
+      <View className="h-14 w-11 shrink-0 gap-0.75 rounded-[10px] border border-line bg-paper-0 px-1.5 py-1.75">
+        <View className="h-0.75 w-[70%] rounded-xs bg-ink-300" />
+        <View className="h-0.5 rounded-xs bg-ink-100" />
+        <View className="h-0.5 w-[85%] rounded-xs bg-ink-100" />
+        <View className="h-0.5 w-[60%] rounded-xs bg-ink-100" />
+        <View className="mt-auto h-0.75 w-1/2 rounded-xs bg-green-200" />
       </View>
-      <View style={styles.copy}>
-        <Text style={styles.name} numberOfLines={1}>
+      <View className="min-w-0 flex-1">
+        <Text className="type-body-semibold" numberOfLines={1}>
           {name}
         </Text>
-        <Text style={styles.meta} numberOfLines={1}>
+        <Text className="type-mono mt-0.5 text-muted" numberOfLines={1}>
           {meta}
         </Text>
       </View>
@@ -65,20 +65,14 @@ export function DocumentRow({
 
   if (!onPress) {
     return (
-      <View
-        style={[
-          styles.base,
-          tone === "tint" ? styles.tint : styles.plain,
-          style,
-        ]}
-      >
+      <View className={twMerge(clsx(BASE, tones[tone]), className)}>
         {content}
       </View>
     );
   }
 
   return (
-    <AnimatedPressable
+    <Animated.Pressable
       accessibilityRole="button"
       onPress={onPress}
       onPressIn={() => {
@@ -87,82 +81,10 @@ export function DocumentRow({
       onPressOut={() => {
         scale.value = withSpring(1);
       }}
-      style={[
-        styles.base,
-        tone === "tint" ? styles.tint : styles.plain,
-        animatedStyle,
-        style,
-      ]}
+      className={twMerge(clsx(BASE, tones[tone]), className)}
+      style={animatedStyle}
     >
       {content}
-    </AnimatedPressable>
+    </Animated.Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[5],
-    paddingVertical: 12,
-    paddingLeft: 12,
-    paddingRight: space[6],
-    borderRadius: radius.card,
-    flexShrink: 0,
-  },
-  plain: {
-    backgroundColor: color.bgCard,
-    ...shadowStyle.sm,
-  },
-  tint: {
-    backgroundColor: color.brandTint,
-  },
-  thumbnail: {
-    width: 44,
-    height: 56,
-    flexShrink: 0,
-    borderRadius: 10,
-    paddingVertical: 7,
-    paddingHorizontal: 6,
-    backgroundColor: color.paper0,
-    borderWidth: 1,
-    borderColor: color.borderSubtle,
-    gap: 3,
-  },
-  line: {
-    height: 2,
-    borderRadius: 2,
-    backgroundColor: color.ink100,
-  },
-  lineShort: {
-    width: "70%",
-    height: 3,
-    backgroundColor: color.ink300,
-  },
-  lineMid: {
-    width: "85%",
-  },
-  lineShortest: {
-    width: "60%",
-  },
-  accent: {
-    marginTop: "auto",
-    height: 3,
-    borderRadius: 2,
-    backgroundColor: color.green200,
-    width: "50%",
-  },
-  copy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  name: {
-    ...type.body,
-    fontWeight: "600",
-  },
-  meta: {
-    ...type.mono,
-    color: color.textMuted,
-    marginTop: 2,
-  },
-});

@@ -1,4 +1,5 @@
 import { SyncErrorState } from "@/components/home/HomeStates";
+import clsx from "clsx";
 import { ItemDetailSkeleton } from "@/components/item/ItemDetailSkeleton";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -7,8 +8,9 @@ import { DocumentRow } from "@/components/ui/DocumentRow";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
-import { color, space } from "@/theme/tokens";
-import { fontFamily, type } from "@/theme/typography";
+import { color } from "@/theme/tokens";
+import { ScrollView, Text, View } from "@/tw";
+import { Animated } from "@/tw/animated";
 import type { Tables } from "@/utils/database.types";
 import { formatEuro, formatFileSize, formatShortDate } from "@/utils/format";
 import { haptics } from "@/utils/haptics";
@@ -27,44 +29,27 @@ import { observer } from "@legendapp/state/react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import {
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import Animated, {
-  FadeIn,
-  FadeInDown,
-  useReducedMotion,
-} from "react-native-reanimated";
+import { RefreshControl } from "react-native";
+import { FadeIn, FadeInDown, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type ItemDocument = Tables<"item_documents">;
 
 const STAGGER = 40;
 
-const statusSkins: Record<
-  WarrantyStatus | "unknown",
-  { backgroundColor: string; color: string }
-> = {
-  covered: {
-    backgroundColor: color.statusCoveredBg,
-    color: color.statusCoveredFg,
-  },
-  expiring: {
-    backgroundColor: color.statusExpiringBg,
-    color: color.statusExpiringFg,
-  },
-  expired: {
-    backgroundColor: color.statusExpiredBg,
-    color: color.statusExpiredFg,
-  },
-  unknown: {
-    backgroundColor: color.statusExpiredBg,
-    color: color.statusExpiredFg,
-  },
+const statusTiles: Record<WarrantyStatus | "unknown", string> = {
+  covered: "bg-covered-bg",
+  expiring: "bg-expiring-bg",
+  expired: "bg-expired-bg",
+  unknown: "bg-expired-bg",
+};
+
+/** The category icon takes a colour value, not a class. */
+const statusIconColors: Record<WarrantyStatus | "unknown", string> = {
+  covered: color.statusCoveredFg,
+  expiring: color.statusExpiringFg,
+  expired: color.statusExpiredFg,
+  unknown: color.statusExpiredFg,
 };
 
 function documentMeta(doc: ItemDocument): string {
@@ -113,7 +98,8 @@ function ItemDetailScreen() {
   const showNotFound = !showLoading && !showSyncError && (!item || isDeleted);
 
   const status = statusOf(item?.warranty_end_date ?? null) ?? "unknown";
-  const skin = statusSkins[status];
+  const statusTile = statusTiles[status];
+  const statusIconColor = statusIconColors[status];
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -165,15 +151,13 @@ function ItemDetailScreen() {
     : [];
 
   return (
-    <View style={styles.screen}>
+    <View className="flex-1 bg-app">
       <ScrollView
-        contentContainerStyle={[
-          styles.content,
-          {
-            paddingTop: insets.top + space[11],
-            paddingBottom: insets.bottom + 120,
-          },
-        ]}
+        contentContainerClassName="gap-4 px-gutter"
+        contentContainerStyle={{
+          paddingTop: insets.top + 56,
+          paddingBottom: insets.bottom + 120,
+        }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -208,23 +192,32 @@ function ItemDetailScreen() {
 
         {item && !isDeleted && !showLoading && !showSyncError ? (
           <>
-            <Animated.View entering={FadeIn.duration(220)} style={styles.hero}>
-              <View style={[styles.statusTile, skin]}>
+            <Animated.View
+              entering={FadeIn.duration(220)}
+              className="flex-row items-center gap-[15px]"
+            >
+              <View
+                className={`size-[78px] shrink-0 items-center justify-center rounded-full ${statusTile}`}
+              >
                 <Icon
                   name={categoryIcon(item.category)}
                   size={34}
                   strokeWidth={2}
-                  color={skin.color}
+                  color={statusIconColor}
                 />
               </View>
-              <View style={styles.heroCopy}>
-                <Text style={styles.title}>{item.title}</Text>
-                <Text style={styles.meta}>{itemMeta(item)}</Text>
+              <View className="min-w-0 flex-1">
+                <Text className="type-title font-display-bold font-bold text-primary">
+                  {item.title}
+                </Text>
+                <Text className="type-caption mt-[5px] text-secondary">
+                  {itemMeta(item)}
+                </Text>
               </View>
             </Animated.View>
 
             <Animated.View entering={entering(STAGGER)}>
-              <Card tone="plain" pad={space.padCardLg}>
+              <Card tone="plain" pad={20}>
                 <CoverageBar
                   pct={elapsedPct(item.purchase_date, item.warranty_end_date)}
                   status={status}
@@ -245,7 +238,7 @@ function ItemDetailScreen() {
 
             <Animated.View
               entering={entering(STAGGER * 2)}
-              style={styles.quickActions}
+              className="flex-row gap-2.5"
             >
               {(
                 [
@@ -266,19 +259,17 @@ function ItemDetailScreen() {
                           : "manual",
                     )
                   }
-                  style={[
-                    styles.quickAction,
-                    kind === "claim" ? styles.quickActionClaim : null,
-                  ]}
+                  className={clsx(
+                    "flex-1 items-center gap-2 px-1.5 py-[15px]",
+                    kind === "claim" && "bg-claim-bg shadow-none",
+                  )}
                   pad={0}
                 >
                   <View
-                    style={[
-                      styles.quickActionIcon,
-                      kind === "claim"
-                        ? styles.quickActionIconClaim
-                        : styles.quickActionIconPlain,
-                    ]}
+                    className={clsx(
+                      "size-[42px] items-center justify-center rounded-full",
+                      kind === "claim" ? "bg-claim-solid" : "bg-sunken",
+                    )}
                   >
                     <Icon
                       name={iconName}
@@ -289,10 +280,10 @@ function ItemDetailScreen() {
                     />
                   </View>
                   <Text
-                    style={[
-                      styles.quickActionLabel,
-                      kind === "claim" ? styles.quickActionLabelClaim : null,
-                    ]}
+                    className={clsx(
+                      "type-caption-semibold",
+                      kind === "claim" ? "text-claim-fg" : "text-primary",
+                    )}
                   >
                     {label}
                   </Text>
@@ -301,26 +292,28 @@ function ItemDetailScreen() {
             </Animated.View>
 
             <Animated.View entering={entering(STAGGER * 3)}>
-              <Card tone="plain" pad={0} style={styles.specCard}>
+              <Card tone="plain" pad={0} className="px-card-lg py-1.5">
                 {specRows.map(([label, value], index) => (
                   <View
                     key={label}
-                    style={[
-                      styles.specRow,
-                      index === specRows.length - 1 ? styles.specRowLast : null,
-                    ]}
+                    className={clsx(
+                      "flex-row justify-between gap-3.5 py-[13px]",
+                      index < specRows.length - 1 && "border-b border-line",
+                    )}
                   >
-                    <Text style={styles.specLabel}>{label}</Text>
-                    <Text style={styles.specValue}>{value}</Text>
+                    <Text className="type-body text-secondary">{label}</Text>
+                    <Text className="type-body-semibold shrink text-right">
+                      {value}
+                    </Text>
                   </View>
                 ))}
               </Card>
             </Animated.View>
 
             <Animated.View entering={entering(STAGGER * 4)}>
-              <Text style={styles.sectionLabel}>Documents</Text>
+              <Text className="type-micro mb-[9px] text-secondary">Documents</Text>
               {documents.length > 0 ? (
-                <View style={styles.documents}>
+                <View className="gap-2">
                   {documents.map((doc) => (
                     <DocumentRow
                       key={doc.id}
@@ -341,7 +334,7 @@ function ItemDetailScreen() {
                   ))}
                 </View>
               ) : (
-                <Text style={styles.documentsEmpty}>
+                <Text className="type-caption text-muted">
                   Aucun document pour cet objet
                 </Text>
               )}
@@ -353,7 +346,15 @@ function ItemDetailScreen() {
       {item && !isDeleted && !showLoading && !showSyncError ? (
         <LinearGradient
           colors={[`${color.bgApp}00`, color.bgApp]}
-          style={[styles.footer, { paddingBottom: insets.bottom + 18 }]}
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            paddingHorizontal: 20,
+            paddingTop: 14,
+            paddingBottom: insets.bottom + 18,
+          }}
           pointerEvents="box-none"
         >
           <Button variant="claim" size="lg" full onPress={handleClaim}>
@@ -367,128 +368,3 @@ function ItemDetailScreen() {
 
 export default observer(ItemDetailScreen);
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: color.bgApp,
-  },
-  content: {
-    paddingHorizontal: space.gutterScreen,
-    gap: space[6],
-  },
-  nav: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  hero: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 15,
-  },
-  statusTile: {
-    width: 78,
-    height: 78,
-    borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  },
-  heroCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  title: {
-    ...type.title,
-    fontFamily: fontFamily.displayBold,
-    fontWeight: "700",
-    color: color.textPrimary,
-  },
-  meta: {
-    ...type.caption,
-    color: color.textSecondary,
-    marginTop: 5,
-  },
-  quickActions: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  quickAction: {
-    flex: 1,
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 15,
-    paddingHorizontal: 6,
-  },
-  quickActionClaim: {
-    backgroundColor: color.actionClaimBg,
-    shadowOpacity: 0,
-    elevation: 0,
-  },
-  quickActionIcon: {
-    width: 42,
-    height: 42,
-    borderRadius: 999,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  quickActionIconPlain: {
-    backgroundColor: color.bgSunken,
-  },
-  quickActionIconClaim: {
-    backgroundColor: color.actionClaimSolid,
-  },
-  quickActionLabel: {
-    ...type.caption,
-    fontWeight: "600",
-    color: color.textPrimary,
-  },
-  quickActionLabelClaim: {
-    color: color.actionClaimFg,
-  },
-  specCard: {
-    paddingHorizontal: space.padCardLg,
-    paddingVertical: 6,
-  },
-  specRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 14,
-    paddingVertical: 13,
-    borderBottomWidth: 1,
-    borderBottomColor: color.borderSubtle,
-  },
-  specRowLast: {
-    borderBottomWidth: 0,
-  },
-  specLabel: {
-    ...type.body,
-    color: color.textSecondary,
-  },
-  specValue: {
-    ...type.body,
-    fontWeight: "600",
-    textAlign: "right",
-    flexShrink: 1,
-  },
-  sectionLabel: {
-    ...type.micro,
-    color: color.textSecondary,
-    marginBottom: 9,
-  },
-  documents: {
-    gap: space[4],
-  },
-  documentsEmpty: {
-    ...type.caption,
-    color: color.textMuted,
-  },
-  footer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: space[7],
-    paddingTop: 14,
-  },
-});

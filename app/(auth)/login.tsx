@@ -1,22 +1,14 @@
 import { useState } from "react";
 import { router } from "expo-router";
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { KeyboardAvoidingView, Platform } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { useSession } from "@/contexts/session";
-import { color, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { color } from "@/theme/tokens";
+import { SafeAreaView, ScrollView, Text, View } from "@/tw";
 
 export default function LoginScreen() {
   const { signIn } = useSession();
@@ -42,17 +34,17 @@ export default function LoginScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView className="flex-1 bg-app">
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerClassName="gap-section px-gutter pb-6 pt-2"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.topRow}>
+          <View className="self-start">
             <IconButton
               label="Retour"
               variant="surface"
@@ -62,12 +54,12 @@ export default function LoginScreen() {
             </IconButton>
           </View>
 
-          <View style={styles.header}>
-            <Text style={styles.eyebrow}>Connexion</Text>
-            <Text style={styles.title}>Ravi de vous revoir</Text>
+          <View className="gap-1.5">
+            <Text className="type-micro text-secondary">Connexion</Text>
+            <Text className="type-display text-primary">Ravi de vous revoir</Text>
           </View>
 
-          <Card tone="outline" style={styles.formCard}>
+          <Card tone="outline" className="gap-4">
             <Field
               label="Email"
               value={email}
@@ -90,10 +82,10 @@ export default function LoginScreen() {
           </Card>
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View className="gap-2 px-gutter pb-2">
           {error ? (
-            <View style={styles.errorBox}>
-              <Text style={styles.errorText}>{error}</Text>
+            <View className="rounded-[14px] bg-claim-bg px-4 py-3">
+              <Text className="type-body text-claim-fg">{error}</Text>
             </View>
           ) : null}
           <Button
@@ -120,50 +112,3 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: color.bgApp,
-  },
-  flex: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: space.gutterScreen,
-    paddingTop: space[4],
-    paddingBottom: space[8],
-    gap: space.gapSection,
-  },
-  topRow: {
-    alignSelf: "flex-start",
-  },
-  header: {
-    gap: space[3],
-  },
-  eyebrow: {
-    ...type.micro,
-    color: color.textSecondary,
-  },
-  title: {
-    ...type.display,
-    color: color.textPrimary,
-  },
-  formCard: {
-    gap: space[6],
-  },
-  footer: {
-    paddingHorizontal: space.gutterScreen,
-    paddingBottom: space[4],
-    gap: space[4],
-  },
-  errorBox: {
-    backgroundColor: color.actionClaimBg,
-    borderRadius: 14,
-    paddingVertical: space[5],
-    paddingHorizontal: space[6],
-  },
-  errorText: {
-    ...type.body,
-    color: color.actionClaimFg,
-  },
-});

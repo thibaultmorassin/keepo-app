@@ -1,6 +1,5 @@
-import { ScrollView, StyleSheet } from "react-native";
 import { Chip } from "@/components/ui/Chip";
-import { space } from "@/theme/tokens";
+import { ScrollView } from "@/tw";
 import type { WarrantyFilter } from "@/utils/warranty";
 
 const FILTERS: Array<{ label: string; value: WarrantyFilter }> = [
@@ -20,8 +19,9 @@ export function FilterRow({ value, onChange }: FilterRowProps) {
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.content}
-      style={styles.row}
+      // bleed past the screen gutter so chips can scroll edge to edge
+      className="grow-0 -mx-gutter"
+      contentContainerClassName="gap-[7px] px-gutter"
     >
       {FILTERS.map((filter) => (
         <Chip
@@ -36,14 +36,3 @@ export function FilterRow({ value, onChange }: FilterRowProps) {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  row: {
-    flexGrow: 0,
-    marginHorizontal: -space.gutterScreen,
-  },
-  content: {
-    gap: 7,
-    paddingHorizontal: space.gutterScreen,
-  },
-});

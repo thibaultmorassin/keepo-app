@@ -1,14 +1,13 @@
+import { Text, View } from "@/tw";
 import { ReactNode } from "react";
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
-import { color, radius, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { twMerge } from "tailwind-merge";
 
 type EmptyStateProps = {
   title: string;
   body?: string;
   icon?: ReactNode;
   action: ReactNode;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 };
 
 export function EmptyState({
@@ -16,55 +15,29 @@ export function EmptyState({
   body,
   icon,
   action,
-  style,
+  className,
 }: EmptyStateProps) {
   return (
-    <View style={[styles.base, style]}>
-      {icon ? <View style={styles.iconPuck}>{icon}</View> : null}
-      <View style={styles.copy}>
-        <Text style={styles.title}>{title}</Text>
-        {body ? <Text style={styles.body}>{body}</Text> : null}
+    <View
+      className={twMerge(
+        "items-center gap-3 rounded-hero bg-sunken px-5 py-8",
+        className,
+      )}
+    >
+      {icon ? (
+        <View className="size-15.5 items-center justify-center rounded-pill bg-card shadow-sm">
+          {icon}
+        </View>
+      ) : null}
+      <View className="items-center">
+        <Text className="type-title text-center text-primary">{title}</Text>
+        {body ? (
+          <Text className="type-body mt-1.5 max-w-70 text-center text-secondary">
+            {body}
+          </Text>
+        ) : null}
       </View>
       {action}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    alignItems: "center",
-    gap: space[5],
-    paddingHorizontal: space[7],
-    paddingVertical: space[9],
-    borderRadius: radius.hero,
-    backgroundColor: color.bgSunken,
-  },
-  iconPuck: {
-    width: 62,
-    height: 62,
-    borderRadius: radius.pill,
-    backgroundColor: color.bgCard,
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "rgb(31, 26, 16)",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  copy: {
-    alignItems: "center",
-  },
-  title: {
-    ...type.title,
-    color: color.textPrimary,
-    textAlign: "center",
-  },
-  body: {
-    ...type.body,
-    color: color.textSecondary,
-    textAlign: "center",
-    marginTop: space[3],
-    maxWidth: 280,
-  },
-});

@@ -1,12 +1,8 @@
-import { color, duration, radius, shadowStyle, space } from "@/theme/tokens";
+import { duration } from "@/theme/tokens";
+import { Modal, Pressable, View } from "@/tw";
+import { Animated } from "@/tw/animated";
 import { ReactNode, useEffect } from "react";
 import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
-import Animated, {
   Easing,
   useAnimatedStyle,
   useReducedMotion,
@@ -55,56 +51,25 @@ export function BottomSheet({ visible, onClose, children }: BottomSheetProps) {
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <View style={styles.container}>
-        <Animated.View style={[styles.backdrop, backdropStyle]}>
+      <View className="flex-1 justify-end">
+        <Animated.View
+          className="absolute inset-0 bg-[rgba(27,26,23,0.4)]"
+          style={backdropStyle}
+        >
           <Pressable
             accessibilityLabel="Fermer"
-            style={StyleSheet.absoluteFill}
+            className="absolute inset-0"
             onPress={onClose}
           />
         </Animated.View>
         <Animated.View
-          style={[
-            styles.sheet,
-            { paddingBottom: insets.bottom + space[6] },
-            sheetStyle,
-          ]}
+          className="rounded-t-hero bg-card px-gutter pt-2 shadow-lift"
+          style={[{ paddingBottom: insets.bottom + 16 }, sheetStyle]}
         >
-          <View style={styles.handle} />
+          <View className="mb-4 h-1 w-9 self-center rounded-pill bg-line-strong" />
           {children}
         </Animated.View>
       </View>
     </Modal>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "flex-end",
-  },
-  backdrop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(27,26,23,0.4)",
-  },
-  sheet: {
-    backgroundColor: color.bgCard,
-    borderTopLeftRadius: radius.hero,
-    borderTopRightRadius: radius.hero,
-    paddingTop: space[4],
-    paddingHorizontal: space.gutterScreen,
-    ...shadowStyle.lift,
-  },
-  handle: {
-    alignSelf: "center",
-    width: 36,
-    height: 4,
-    borderRadius: radius.pill,
-    backgroundColor: color.borderStrong,
-    marginBottom: space[6],
-  },
-});

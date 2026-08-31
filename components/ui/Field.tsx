@@ -1,17 +1,11 @@
-import { useState } from "react";
-import {
-  StyleProp,
-  StyleSheet,
-  Text,
-  TextInput,
-  TextInputProps,
-  View,
-  ViewStyle,
-} from "react-native";
-import { IconButton } from "@/components/ui/IconButton";
 import { Icon } from "@/components/ui/Icon";
-import { color, radius, space } from "@/theme/tokens";
-import { fontFamily, type } from "@/theme/typography";
+import { IconButton } from "@/components/ui/IconButton";
+import { color } from "@/theme/tokens";
+import { Text, TextInput, View } from "@/tw";
+import clsx from "clsx";
+import { useState } from "react";
+import type { TextInputProps } from "react-native";
+import { twMerge } from "tailwind-merge";
 
 type FieldProps = {
   label: string;
@@ -22,7 +16,7 @@ type FieldProps = {
   error?: string;
   secureTextEntry?: boolean;
   suffix?: string;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 } & Pick<
   TextInputProps,
   | "keyboardType"
@@ -41,16 +35,16 @@ export function Field({
   error,
   secureTextEntry = false,
   suffix,
-  style,
+  className,
   ...inputProps
 }: FieldProps) {
   const [focused, setFocused] = useState(false);
   const [hidden, setHidden] = useState(secureTextEntry);
 
   return (
-    <View style={[styles.wrapper, style]}>
-      <Text style={styles.label}>{label}</Text>
-      <View style={styles.inputRow}>
+    <View className={twMerge("gap-1.5", className)}>
+      <Text className="type-micro text-secondary">{label}</Text>
+      <View className="relative justify-center">
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -59,16 +53,17 @@ export function Field({
           secureTextEntry={hidden}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          style={[
-            styles.input,
-            focused && styles.inputFocused,
-            error && styles.inputError,
-            secureTextEntry || suffix ? styles.inputWithSuffix : null,
-          ]}
+          className={clsx(
+            "w-full rounded-input border border-line bg-card px-3.5 py-3 font-sans text-[14.5px] text-primary",
+            // the focus ring is 2px, so shed a pixel of padding to hold size
+            focused && "border-2 border-green-200 px-3.25 py-2.75",
+            error && "border-claim-fg",
+            (secureTextEntry || suffix) && "pr-12",
+          )}
           {...inputProps}
         />
         {secureTextEntry ? (
-          <View style={styles.suffix}>
+          <View className="absolute right-1.5">
             <IconButton
               label={
                 hidden ? "Afficher le mot de passe" : "Masquer le mot de passe"
@@ -85,70 +80,16 @@ export function Field({
             </IconButton>
           </View>
         ) : suffix ? (
-          <Text style={styles.suffixText}>{suffix}</Text>
+          <Text className="type-mono absolute right-3.5 text-muted">
+            {suffix}
+          </Text>
         ) : null}
       </View>
       {error ? (
-        <Text style={styles.errorText}>{error}</Text>
+        <Text className="type-caption text-claim-fg">{error}</Text>
       ) : hint ? (
-        <Text style={styles.hint}>{hint}</Text>
+        <Text className="type-caption text-muted">{hint}</Text>
       ) : null}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  wrapper: {
-    gap: space[3],
-  },
-  label: {
-    ...type.micro,
-    color: color.textSecondary,
-  },
-  inputRow: {
-    position: "relative",
-    justifyContent: "center",
-  },
-  input: {
-    width: "100%",
-    borderWidth: 1,
-    borderColor: color.borderSubtle,
-    backgroundColor: color.bgCard,
-    borderRadius: radius.input,
-    paddingVertical: 12,
-    paddingHorizontal: 14,
-    fontFamily: fontFamily.sans,
-    fontSize: 14.5,
-    color: color.textPrimary,
-  },
-  inputFocused: {
-    borderColor: color.green200,
-    borderWidth: 2,
-    paddingVertical: 11,
-    paddingHorizontal: 13,
-  },
-  inputWithSuffix: {
-    paddingRight: 48,
-  },
-  inputError: {
-    borderColor: color.actionClaimFg,
-  },
-  suffix: {
-    position: "absolute",
-    right: 6,
-  },
-  suffixText: {
-    ...type.mono,
-    position: "absolute",
-    right: 14,
-    color: color.textMuted,
-  },
-  hint: {
-    ...type.caption,
-    color: color.textMuted,
-  },
-  errorText: {
-    ...type.caption,
-    color: color.actionClaimFg,
-  },
-});

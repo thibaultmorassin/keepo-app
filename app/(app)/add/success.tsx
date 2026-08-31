@@ -2,8 +2,9 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Confetti } from "@/components/ui/confetti";
 import { Icon } from "@/components/ui/Icon";
-import { color, radius, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { color } from "@/theme/tokens";
+import { Text, View } from "@/tw";
+import { Animated } from "@/tw/animated";
 import type { Tables } from "@/utils/database.types";
 import { formatShortDate } from "@/utils/format";
 import { haptics } from "@/utils/haptics";
@@ -17,8 +18,7 @@ import {
 import { observer } from "@legendapp/state/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import Animated, {
+import {
   FadeIn,
   FadeInDown,
   useAnimatedStyle,
@@ -97,21 +97,22 @@ function AddSuccessScreen() {
 
   return (
     <View
-      style={[
-        styles.screen,
-        {
-          paddingTop: space[7],
-          paddingBottom: insets.bottom + space[8],
-        },
-      ]}
+      className="flex-1 bg-app px-gutter pt-5"
+      style={{ paddingBottom: insets.bottom + 24 }}
     >
-      <View style={styles.celebration}>
-        <View style={styles.sealWrapper}>
+      <View className="flex-1 items-center justify-center gap-3">
+        <View className="mb-3 size-[108px] items-center justify-center rounded-pill bg-brand-tint">
           {!reduceMotion ? <Confetti /> : null}
           {!reduceMotion ? (
-            <Animated.View style={[styles.pulse, pulseStyle]} />
+            <Animated.View
+              className="absolute size-[76px] rounded-pill bg-green-200"
+              style={pulseStyle}
+            />
           ) : null}
-          <Animated.View style={[styles.seal, sealStyle]}>
+          <Animated.View
+            className="size-[76px] items-center justify-center rounded-pill bg-brand"
+            style={sealStyle}
+          >
             <Icon
               name="check"
               size={34}
@@ -121,20 +122,29 @@ function AddSuccessScreen() {
           </Animated.View>
         </View>
 
-        <Animated.Text entering={entering(STAGGER * 2)} style={styles.headline}>
+        <Animated.Text
+          entering={entering(STAGGER * 2)}
+          className="type-display text-center text-primary"
+        >
           C&apos;est gardé.
         </Animated.Text>
 
-        <Animated.Text entering={entering(STAGGER * 3)} style={styles.subtitle}>
+        <Animated.Text
+          entering={entering(STAGGER * 3)}
+          className="type-body-lg max-w-[300px] text-center text-secondary"
+        >
           {item && endDate
             ? `${item.title} est couvert jusqu'au ${formatShortDate(endDate)}.`
             : "Votre objet est enregistré."}
         </Animated.Text>
 
         {item && endDate ? (
-          <Animated.View entering={entering(STAGGER * 4)} style={styles.recap}>
-            <Card tone="tint" pad={space[5]}>
-              <Text style={styles.recapLine}>
+          <Animated.View
+            entering={entering(STAGGER * 4)}
+            className="mt-2 self-stretch px-5"
+          >
+            <Card tone="tint" pad={12}>
+              <Text className="type-label text-center text-brand-strong">
                 {duration ? `Garantie ${duration}` : remainingLabel(endDate)}
                 {/* "24 mois" restates a fresh "2 ans" — the remaining count only
                     earns its place once it's the more urgent number. */}
@@ -142,7 +152,7 @@ function AddSuccessScreen() {
                   ? ` · ${remainingLabel(endDate)}`
                   : ""}
               </Text>
-              <Text style={styles.recapNote}>
+              <Text className="type-caption mt-0.5 text-center text-brand-strong opacity-75">
                 {item.reminder_enabled
                   ? `On vous prévient ${DEFAULT_REMINDER_DAYS} jours avant la fin.`
                   : "Aucun rappel programmé pour cet objet."}
@@ -152,7 +162,7 @@ function AddSuccessScreen() {
         ) : null}
       </View>
 
-      <Animated.View entering={entering(STAGGER * 5)} style={styles.footer}>
+      <Animated.View entering={entering(STAGGER * 5)} className="pt-5">
         <Button variant="primary" size="lg" full onPress={close}>
           Terminé
         </Button>
@@ -161,73 +171,5 @@ function AddSuccessScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: color.bgApp,
-    paddingHorizontal: space.gutterScreen,
-  },
-  celebration: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    gap: space[5],
-  },
-  sealWrapper: {
-    width: 108,
-    height: 108,
-    borderRadius: radius.pill,
-    backgroundColor: color.brandTint,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: space[5],
-  },
-  pulse: {
-    position: "absolute",
-    width: 76,
-    height: 76,
-    borderRadius: radius.pill,
-    backgroundColor: color.green200,
-  },
-  seal: {
-    width: 76,
-    height: 76,
-    borderRadius: radius.pill,
-    backgroundColor: color.brand,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headline: {
-    ...type.display,
-    color: color.textPrimary,
-    textAlign: "center",
-  },
-  subtitle: {
-    ...type.bodyLg,
-    color: color.textSecondary,
-    textAlign: "center",
-    maxWidth: 300,
-  },
-  recap: {
-    marginTop: space[4],
-    alignSelf: "stretch",
-    paddingHorizontal: space[7],
-  },
-  recapLine: {
-    ...type.label,
-    color: color.brandStrong,
-    textAlign: "center",
-  },
-  recapNote: {
-    ...type.caption,
-    color: color.brandStrong,
-    opacity: 0.75,
-    textAlign: "center",
-    marginTop: 2,
-  },
-  footer: {
-    paddingTop: space[7],
-  },
-});
 
 export default observer(AddSuccessScreen);

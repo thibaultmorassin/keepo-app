@@ -1,113 +1,75 @@
-import { color, motion, radius, space } from "@/theme/tokens";
-import { fontFamily, type } from "@/theme/typography";
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, {
+import { motion } from "@/theme/tokens";
+import { Text } from "@/tw";
+import { Animated } from "@/tw/animated";
+import clsx from "clsx";
+import {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import { twMerge } from "tailwind-merge";
 
 type StatTileTone = "onBrand" | "plain" | "covered" | "expiring" | "expired";
 
-type StatTileProps = React.ComponentProps<typeof View> & {
+type StatTileProps = {
   value: string;
   label: string;
   tone?: StatTileTone;
+  className?: string;
 };
 
-const skins: Record<
-  StatTileTone,
-  { backgroundColor: string; color: string; labelOpacity: number }
-> = {
-  onBrand: {
-    backgroundColor: "rgba(252,250,246,0.17)",
-    color: color.textOnDark,
-    labelOpacity: 0.85,
-  },
-  plain: {
-    backgroundColor: color.bgSunken,
-    color: color.textPrimary,
-    labelOpacity: 0.85,
-  },
-  covered: {
-    backgroundColor: color.statusCoveredBg,
-    color: color.statusCoveredFg,
-    labelOpacity: 0.85,
-  },
-  expiring: {
-    backgroundColor: color.statusExpiringBg,
-    color: color.statusExpiringFg,
-    labelOpacity: 0.85,
-  },
-  expired: {
-    backgroundColor: color.statusExpiredBg,
-    color: color.statusExpiredFg,
-    labelOpacity: 0.85,
-  },
+const tones: Record<StatTileTone, string> = {
+  onBrand: "bg-on-dark/17",
+  plain: "bg-sunken",
+  covered: "bg-covered-bg",
+  expiring: "bg-expiring-bg",
+  expired: "bg-expired-bg",
 };
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const texts: Record<StatTileTone, string> = {
+  onBrand: "text-on-dark",
+  plain: "text-primary",
+  covered: "text-covered-fg",
+  expiring: "text-expiring-fg",
+  expired: "text-expired-fg",
+};
+
 export function StatTile({
   value,
   label,
   tone = "onBrand",
-  style,
-  ...props
+  className,
 }: StatTileProps) {
-  const skin = skins[tone];
-
   const scale = useSharedValue(1);
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
   }));
 
   return (
-    <AnimatedPressable
+    <Animated.Pressable
       onPressIn={() => {
         scale.value = withSpring(motion.pressScale);
       }}
       onPressOut={() => {
         scale.value = withSpring(1);
       }}
-      style={[
-        styles.base,
-        { backgroundColor: skin.backgroundColor },
-        animatedStyle,
-        style,
-      ]}
-      {...props}
+      className={twMerge(
+        clsx("shrink-0 flex-1 rounded-tile px-3 py-list", tones[tone]),
+        className,
+      )}
+      style={animatedStyle}
     >
-      <Text style={[styles.value, { color: skin.color }]}>{value}</Text>
       <Text
-        style={[
-          styles.label,
-          { color: skin.color, opacity: skin.labelOpacity },
-        ]}
+        className={clsx(
+          "font-display-bold text-[20px]/[22px] font-bold tracking-[-0.4px]",
+          texts[tone],
+        )}
       >
+        {value}
+      </Text>
+      <Text className={clsx("type-caption mt-0.5 opacity-85", texts[tone])}>
         {label}
       </Text>
-    </AnimatedPressable>
+    </Animated.Pressable>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    flex: 1,
-    borderRadius: radius.tile,
-    paddingHorizontal: space[5],
-    paddingVertical: 9,
-    flexShrink: 0,
-  },
-  value: {
-    fontFamily: fontFamily.displayBold,
-    fontSize: 20,
-    lineHeight: 22,
-    letterSpacing: -0.4,
-    fontWeight: "700",
-  },
-  label: {
-    ...type.caption,
-    marginTop: 2,
-  },
-});

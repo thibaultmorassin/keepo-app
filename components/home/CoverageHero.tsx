@@ -1,10 +1,8 @@
 import { Card } from "@/components/ui/Card";
 import { StatTile } from "@/components/ui/StatTile";
-import { color, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { Pressable, Text, View } from "@/tw";
 import { formatEuro } from "@/utils/format";
 import { openClaimsLabel, WarrantyFilter } from "@/utils/warranty";
-import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type CoverageHeroProps = {
   totalCoveredValue: number;
@@ -16,6 +14,8 @@ type CoverageHeroProps = {
   onFilterChange: (filter: WarrantyFilter) => void;
 };
 
+const TILE = "flex-1 shrink-0 active:scale-[0.98]";
+
 export function CoverageHero({
   totalCoveredValue,
   totalItems,
@@ -26,22 +26,20 @@ export function CoverageHero({
   onFilterChange,
 }: CoverageHeroProps) {
   return (
-    <Card tone="brand" size="hero" style={styles.card}>
-      <View style={styles.circle} />
-      <View style={styles.content}>
-        <Text style={styles.eyebrow}>Valeur encore couverte</Text>
-        <Text style={styles.total}>{formatEuro(totalCoveredValue)}</Text>
-        <Text style={styles.summary}>
+    <Card tone="brand" size="hero" className="relative overflow-hidden">
+      <View className="absolute -right-11.5 -top-11.5 size-42.5 rounded-full bg-on-dark/12" />
+      <View className="relative">
+        <Text className="type-micro text-on-dark opacity-[0.82]">
+          Valeur encore couverte
+        </Text>
+        <Text className="type-hero mt-1.5 text-on-dark">
+          {formatEuro(totalCoveredValue)}
+        </Text>
+        <Text className="type-body mt-1 text-on-dark opacity-[0.88]">
           sur {totalItems} objets suivis · {openClaimsLabel(openClaims)}
         </Text>
-        <View style={styles.stats}>
-          <Pressable
-            onPress={() => onFilterChange("covered")}
-            style={({ pressed }) => [
-              styles.statTile,
-              pressed && styles.statTileActive,
-            ]}
-          >
+        <View className="mt-[18px] flex-row gap-2">
+          <Pressable onPress={() => onFilterChange("covered")} className={TILE}>
             <StatTile
               value={String(coveredCount)}
               label={coveredCount > 0 ? "Couverts" : "Couvert"}
@@ -49,20 +47,11 @@ export function CoverageHero({
           </Pressable>
           <Pressable
             onPress={() => onFilterChange("expiring")}
-            style={({ pressed }) => [
-              styles.statTile,
-              pressed && styles.statTileActive,
-            ]}
+            className={TILE}
           >
             <StatTile value={String(expiringCount)} label="Bientôt" />
           </Pressable>
-          <Pressable
-            onPress={() => onFilterChange("expired")}
-            style={({ pressed }) => [
-              styles.statTile,
-              pressed && styles.statTileActive,
-            ]}
-          >
+          <Pressable onPress={() => onFilterChange("expired")} className={TILE}>
             <StatTile
               value={String(expiredCount)}
               label={expiredCount > 0 ? "Expirés" : "Expirée"}
@@ -73,50 +62,3 @@ export function CoverageHero({
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    overflow: "hidden",
-    position: "relative",
-  },
-  circle: {
-    position: "absolute",
-    right: -46,
-    top: -46,
-    width: 170,
-    height: 170,
-    borderRadius: 999,
-    backgroundColor: color.heroCircle,
-  },
-  content: {
-    position: "relative",
-  },
-  eyebrow: {
-    ...type.micro,
-    color: color.textOnDark,
-    opacity: 0.82,
-  },
-  total: {
-    ...type.hero,
-    color: color.textOnDark,
-    marginTop: 6,
-  },
-  summary: {
-    ...type.body,
-    color: color.textOnDark,
-    opacity: 0.88,
-    marginTop: 4,
-  },
-  stats: {
-    flexDirection: "row",
-    gap: space[4],
-    marginTop: 18,
-  },
-  statTile: {
-    flex: 1,
-    flexShrink: 0,
-  },
-  statTileActive: {
-    transform: [{ scale: 0.98 }],
-  },
-});

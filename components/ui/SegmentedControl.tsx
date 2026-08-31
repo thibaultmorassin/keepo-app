@@ -1,30 +1,26 @@
-import { color, duration, radius, shadowStyle, space } from "@/theme/tokens";
-import { fontFamily } from "@/theme/typography";
+import { duration } from "@/theme/tokens";
+import { Pressable, Text, View } from "@/tw";
+import { Animated } from "@/tw/animated";
+import clsx from "clsx";
 import { useState } from "react";
+import type { LayoutChangeEvent } from "react-native";
 import {
-  LayoutChangeEvent,
-  Pressable,
-  StyleProp,
-  StyleSheet,
-  Text,
-  View,
-  ViewStyle,
-} from "react-native";
-import Animated, {
   Easing,
   useAnimatedStyle,
   useReducedMotion,
   withTiming,
 } from "react-native-reanimated";
+import { twMerge } from "tailwind-merge";
 
-const TRACK_PADDING = space[2];
+/** Matches the `p-1` on the track — the thumb is inset by the same amount. */
+const TRACK_PADDING = 4;
 
 type SegmentedControlProps<T extends string> = {
   options: readonly T[];
   /** `null` renders no segment selected — e.g. a custom value the presets don't match. */
   value: T | null;
   onChange?: (value: T) => void;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 };
 
 /** 2–4 exclusive short options in one sunken track. 5+ belongs in a Chip row. */
@@ -32,7 +28,7 @@ export function SegmentedControl<T extends string>({
   options,
   value,
   onChange,
-  style,
+  className,
 }: SegmentedControlProps<T>) {
   const [trackWidth, setTrackWidth] = useState(0);
   const reduceMotion = useReducedMotion();
@@ -69,10 +65,16 @@ export function SegmentedControl<T extends string>({
     <View
       accessibilityRole="tablist"
       onLayout={handleLayout}
-      style={[styles.track, style]}
+      className={twMerge(
+        "shrink-0 flex-row rounded-pill bg-sunken p-1",
+        className,
+      )}
     >
       {segmentWidth > 0 ? (
-        <Animated.View style={[styles.thumb, thumbStyle]} />
+        <Animated.View
+          className="absolute inset-y-1 left-1 rounded-pill bg-card shadow-sm"
+          style={thumbStyle}
+        />
       ) : null}
       {options.map((option) => {
         const selected = option === value;
@@ -82,14 +84,16 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected }}
             onPress={() => onChange?.(option)}
-            style={styles.segment}
+            className="min-h-9.5 flex-1 items-center justify-center px-2"
           >
             <Text
               numberOfLines={1}
-              style={[
-                styles.label,
-                selected ? styles.labelSelected : styles.labelIdle,
-              ]}
+              className={clsx(
+                "text-[13px]/[16px]",
+                selected
+                  ? "font-sans-semibold font-semibold text-primary"
+                  : "font-sans-medium font-medium text-secondary",
+              )}
             >
               {option}
             </Text>
@@ -99,43 +103,3 @@ export function SegmentedControl<T extends string>({
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  track: {
-    flexDirection: "row",
-    padding: TRACK_PADDING,
-    backgroundColor: color.bgSunken,
-    borderRadius: radius.pill,
-    flexShrink: 0,
-  },
-  thumb: {
-    position: "absolute",
-    top: TRACK_PADDING,
-    left: TRACK_PADDING,
-    bottom: TRACK_PADDING,
-    borderRadius: radius.pill,
-    backgroundColor: color.bgCard,
-    ...shadowStyle.sm,
-  },
-  segment: {
-    flex: 1,
-    minHeight: 38,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: space[4],
-  },
-  label: {
-    fontSize: 13,
-    lineHeight: 16,
-  },
-  labelSelected: {
-    fontFamily: fontFamily.sansSemiBold,
-    fontWeight: "600",
-    color: color.textPrimary,
-  },
-  labelIdle: {
-    fontFamily: fontFamily.sansMedium,
-    fontWeight: "500",
-    color: color.textSecondary,
-  },
-});

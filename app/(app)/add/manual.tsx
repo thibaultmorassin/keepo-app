@@ -10,8 +10,8 @@ import { ReceiptPreviewModal } from "@/components/ui/ReceiptPreviewModal";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { Switch } from "@/components/ui/Switch";
 import { useSession } from "@/contexts/session";
-import { color, radius, space } from "@/theme/tokens";
-import { fontFamily, type } from "@/theme/typography";
+import { color } from "@/theme/tokens";
+import { Pressable, ScrollView, Text, View } from "@/tw";
 import { formatFileSize } from "@/utils/format";
 import { haptics } from "@/utils/haptics";
 import {
@@ -43,11 +43,6 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -225,23 +220,18 @@ export default function AddManualScreen() {
   }, [handleSubmit, onSubmit]);
 
   return (
-    <View style={styles.screen}>
+    <View className="flex-1 bg-app">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={styles.flex}
+        style={{ flex: 1 }}
       >
         <ScrollView
-          contentContainerStyle={[
-            styles.content,
-            {
-              paddingTop: space[7],
-              paddingBottom: insets.bottom + 180,
-            },
-          ]}
+          contentContainerClassName="gap-4 px-gutter pt-5"
+          contentContainerStyle={{ paddingBottom: insets.bottom + 180 }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <View style={styles.header}>
+          <View className="flex-row items-center gap-3">
             <IconButton
               label="Retour"
               onPress={() => {
@@ -251,10 +241,10 @@ export default function AddManualScreen() {
             >
               <Icon name="chevron-left" size={19} />
             </IconButton>
-            <Text style={styles.heading}>Vérifier et enregistrer</Text>
+            <Text className="type-heading flex-1 text-primary">Vérifier et enregistrer</Text>
           </View>
 
-          <Card tone="plain" size="hero" style={styles.formCard}>
+          <Card tone="plain" size="hero" className="gap-6">
             <Controller
               control={control}
               name="title"
@@ -282,9 +272,9 @@ export default function AddManualScreen() {
                   value !== null || "Choisissez une catégorie.",
               }}
               render={({ field: { value, onChange } }) => (
-                <View style={styles.group}>
-                  <Text style={styles.groupLabel}>Catégorie</Text>
-                  <View style={styles.chipRow}>
+                <View className="gap-2">
+                  <Text className="type-micro text-secondary">Catégorie</Text>
+                  <View className="flex-row flex-wrap gap-1.5">
                     {CATEGORIES.map((option) => (
                       <Chip
                         key={option}
@@ -299,13 +289,13 @@ export default function AddManualScreen() {
                     ))}
                   </View>
                   {errors.category ? (
-                    <Text style={styles.error}>{errors.category.message}</Text>
+                    <Text className="type-body text-claim-fg">{errors.category.message}</Text>
                   ) : null}
                 </View>
               )}
             />
 
-            <View style={styles.splitRow}>
+            <View className="flex-row gap-2.5">
               <Controller
                 control={control}
                 name="price"
@@ -323,7 +313,7 @@ export default function AddManualScreen() {
                     placeholder="649,00"
                     keyboardType="decimal-pad"
                     suffix="€"
-                    style={styles.splitItem}
+                    className="min-w-0 flex-1"
                     error={errors.price?.message}
                   />
                 )}
@@ -340,7 +330,7 @@ export default function AddManualScreen() {
                     value={value}
                     onChange={handlePurchaseDateChange}
                     maximumDate={new Date()}
-                    style={styles.splitItem}
+                    className="min-w-0 flex-1"
                     error={errors.purchaseDate?.message}
                   />
                 )}
@@ -361,8 +351,8 @@ export default function AddManualScreen() {
               )}
             />
 
-            <View style={styles.group}>
-              <Text style={styles.groupLabel}>Durée de garantie</Text>
+            <View className="gap-2">
+              <Text className="type-micro text-secondary">Durée de garantie</Text>
               <SegmentedControl
                 options={DURATION_LABELS}
                 value={durationMode}
@@ -396,7 +386,7 @@ export default function AddManualScreen() {
                   hitSlop={8}
                   onPress={handleAttach}
                 >
-                  <Text style={styles.replace}>Remplacer</Text>
+                  <Text className="type-label text-brand">Remplacer</Text>
                 </Pressable>
               }
               onPress={() => setPreviewOpen(true)}
@@ -406,14 +396,14 @@ export default function AddManualScreen() {
               accessibilityRole="button"
               accessibilityLabel="Ajouter le reçu"
               onPress={handleAttach}
-              style={styles.attach}
+              className="min-h-tap flex-row items-center gap-3 rounded-card border border-dashed border-line-strong px-4 py-3.5"
             >
-              <View style={styles.attachIcon}>
+              <View className="size-10 shrink-0 items-center justify-center rounded-pill bg-brand-tint">
                 <Icon name="receipt" size={19} color={color.brand} />
               </View>
-              <View style={styles.attachCopy}>
-                <Text style={styles.attachTitle}>Ajouter le reçu</Text>
-                <Text style={styles.attachBody}>
+              <View className="min-w-0 flex-1">
+                <Text className="type-body-semibold text-primary">Ajouter le reçu</Text>
+                <Text className="type-caption mt-px text-secondary">
                   Photo, image ou PDF — la preuve d&apos;achat.
                 </Text>
               </View>
@@ -438,7 +428,7 @@ export default function AddManualScreen() {
             />
           </Card>
 
-          {submitError ? <Text style={styles.error}>{submitError}</Text> : null}
+          {submitError ? <Text className="type-body text-claim-fg">{submitError}</Text> : null}
         </ScrollView>
       </KeyboardAvoidingView>
 
@@ -446,7 +436,15 @@ export default function AddManualScreen() {
         colors={[`${color.bgApp}00`, color.bgApp]}
         locations={[0, 0.62]}
         pointerEvents="box-none"
-        style={[styles.footer, { paddingBottom: insets.bottom + space[8] }]}
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          paddingHorizontal: 18,
+          paddingTop: 20,
+          paddingBottom: insets.bottom + 24,
+        }}
       >
         <Button
           variant="primary"
@@ -468,102 +466,3 @@ export default function AddManualScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: color.bgApp,
-  },
-  flex: {
-    flex: 1,
-  },
-  content: {
-    paddingHorizontal: space.gutterScreen,
-    gap: space[6],
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[5],
-  },
-  heading: {
-    ...type.heading,
-    color: color.textPrimary,
-    flex: 1,
-  },
-  formCard: {
-    gap: space[8],
-  },
-  group: {
-    gap: space[4],
-  },
-  groupLabel: {
-    ...type.micro,
-    color: color.textSecondary,
-  },
-  chipRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: space[3],
-  },
-  splitRow: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  splitItem: {
-    flex: 1,
-    minWidth: 0,
-  },
-  replace: {
-    ...type.label,
-    color: color.brand,
-    fontWeight: "600",
-  },
-  attach: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[5],
-    paddingVertical: 14,
-    paddingHorizontal: space[6],
-    borderRadius: radius.card,
-    borderWidth: 1,
-    borderStyle: "dashed",
-    borderColor: color.borderStrong,
-    minHeight: space.tapMin,
-  },
-  attachIcon: {
-    width: 40,
-    height: 40,
-    flexShrink: 0,
-    borderRadius: radius.pill,
-    backgroundColor: color.brandTint,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  attachCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  attachTitle: {
-    ...type.body,
-    fontFamily: fontFamily.sansSemiBold,
-    fontWeight: "600",
-    color: color.textPrimary,
-  },
-  attachBody: {
-    ...type.caption,
-    color: color.textSecondary,
-    marginTop: 1,
-  },
-  error: {
-    ...type.body,
-    color: color.actionClaimFg,
-  },
-  footer: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: space.gutterScreen,
-    paddingTop: space[7],
-  },
-});

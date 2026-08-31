@@ -1,8 +1,6 @@
 import { BottomSheet } from "@/components/ui/BottomSheet";
 import { Button } from "@/components/ui/Button";
-import { color, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
-import { StyleSheet, Text } from "react-native";
+import { Text } from "@/tw";
 
 type ComingSoonSheetProps = {
   visible: boolean;
@@ -22,17 +20,17 @@ export function ComingSoonSheet({
 }: ComingSoonSheetProps) {
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      <Text style={styles.title}>
+      <Text className="type-heading text-center text-primary">
         {label ? `${label} — bientôt disponible` : "Bientôt disponible"}
       </Text>
-      <Text style={styles.body}>
+      <Text className="type-body mt-2 text-center text-secondary">
         On y travaille — cette fonctionnalité arrive prochainement.
       </Text>
       <Button
         variant="primary"
         size="lg"
         full
-        style={styles.action}
+        className="mt-5"
         onPress={onClose}
       >
         Compris
@@ -40,20 +38,3 @@ export function ComingSoonSheet({
     </BottomSheet>
   );
 }
-
-const styles = StyleSheet.create({
-  title: {
-    ...type.heading,
-    color: color.textPrimary,
-    textAlign: "center",
-  },
-  body: {
-    ...type.body,
-    color: color.textSecondary,
-    textAlign: "center",
-    marginTop: space[4],
-  },
-  action: {
-    marginTop: space[7],
-  },
-});

@@ -1,3 +1,5 @@
+import "@/global.css";
+
 import { SplashScreenController } from "@/components/SplashScreenController";
 import { SessionProvider, useSession } from "@/contexts/session";
 import { color } from "@/theme/tokens";
@@ -14,7 +16,7 @@ import {
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { KeyboardProvider } from "react-native-keyboard-controller";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider } from "react-native-css/components/react-native-safe-area-context";
 
 function RootNavigator() {
   const { session } = useSession();

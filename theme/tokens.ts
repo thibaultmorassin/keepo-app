@@ -1,30 +1,12 @@
-import { Platform, type ViewStyle } from "react-native";
-
-const shadowBase = "rgb(31, 26, 16)";
-
-function shadow(
-  offsetY: number,
-  radius: number,
-  opacity: number,
-  elevation: number,
-): ViewStyle {
-  return Platform.select({
-    ios: {
-      shadowColor: shadowBase,
-      shadowOffset: { width: 0, height: offsetY },
-      shadowOpacity: opacity,
-      shadowRadius: radius,
-    },
-    android: { elevation },
-    default: {
-      shadowColor: shadowBase,
-      shadowOffset: { width: 0, height: offsetY },
-      shadowOpacity: opacity,
-      shadowRadius: radius,
-      elevation,
-    },
-  }) as ViewStyle;
-}
+/**
+ * JS mirror of the design tokens in `global.css`.
+ *
+ * `global.css` is canonical — everything that can be a Tailwind class should be
+ * one. What lives here is only what needs a real value instead: colours handed
+ * to props (Lucide icons, `placeholderTextColor`, `LinearGradient`,
+ * `ActivityIndicator`, `RefreshControl`) and the motion numbers Reanimated
+ * consumes. Keep the colour values in sync with `@theme` in `global.css`.
+ */
 
 export const color = {
   paper0: "#FCFAF6",
@@ -100,47 +82,6 @@ export const color = {
 
   focusRing: "#C4E9D6",
   heroCircle: "rgba(252,250,246,0.12)",
-} as const;
-
-export const space = {
-  1: 2,
-  2: 4,
-  3: 6,
-  4: 8,
-  5: 12,
-  6: 16,
-  7: 20,
-  8: 24,
-  9: 32,
-  10: 40,
-  11: 56,
-  gutterScreen: 18,
-  gapList: 9,
-  gapSection: 18,
-  padCard: 16,
-  padCardLg: 20,
-  tapMin: 44,
-} as const;
-
-export const radius = {
-  pill: 999,
-  hero: 28,
-  card: 22,
-  tile: 16,
-  input: 14,
-  chip: 999,
-} as const;
-
-export const shadowStyle = {
-  sm: shadow(1, 2, 0.05, 2),
-  card: {
-    ...shadow(1, 2, 0.05, 3),
-    ...shadow(8, 20, 0.16, 6),
-  },
-  lift: {
-    ...shadow(2, 4, 0.06, 8),
-    ...shadow(18, 34, 0.24, 12),
-  },
 } as const;
 
 export const duration = {

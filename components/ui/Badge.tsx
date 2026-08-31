@@ -1,7 +1,7 @@
-import { color, radius, space } from "@/theme/tokens";
-import { type } from "@/theme/typography";
+import { Text, View } from "@/tw";
+import clsx from "clsx";
 import { ReactNode } from "react";
-import { StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { twMerge } from "tailwind-merge";
 
 type BadgeStatus =
   | "covered"
@@ -16,38 +16,27 @@ type BadgeProps = {
   children: ReactNode;
   status?: BadgeStatus;
   icon?: ReactNode;
-  style?: StyleProp<ViewStyle>;
+  className?: string;
 };
 
-const skins: Record<BadgeStatus, { backgroundColor: string; color: string }> = {
-  covered: {
-    backgroundColor: color.statusCoveredBg,
-    color: color.statusCoveredFg,
-  },
-  expiring: {
-    backgroundColor: color.statusExpiringBg,
-    color: color.statusExpiringFg,
-  },
-  expired: {
-    backgroundColor: color.statusExpiredBg,
-    color: color.statusExpiredFg,
-  },
-  claim: {
-    backgroundColor: color.actionClaimBg,
-    color: color.actionClaimFg,
-  },
-  pro: {
-    backgroundColor: color.accentProBg,
-    color: color.accentProFg,
-  },
-  inverse: {
-    backgroundColor: "rgba(252,250,246,0.18)",
-    color: color.textOnDark,
-  },
-  free: {
-    backgroundColor: color.bgSunken,
-    color: color.textSecondary,
-  },
+const skins: Record<BadgeStatus, string> = {
+  covered: "bg-covered-bg",
+  expiring: "bg-expiring-bg",
+  expired: "bg-expired-bg",
+  claim: "bg-claim-bg",
+  pro: "bg-pro-bg",
+  inverse: "bg-on-dark/18",
+  free: "bg-sunken",
+};
+
+const labels: Record<BadgeStatus, string> = {
+  covered: "text-covered-fg",
+  expiring: "text-expiring-fg",
+  expired: "text-expired-fg",
+  claim: "text-claim-fg",
+  pro: "text-pro-fg",
+  inverse: "text-on-dark",
+  free: "text-secondary",
 };
 
 /** Small status pill. The status word is the colour system — pick the status. */
@@ -55,35 +44,25 @@ export function Badge({
   children,
   status = "covered",
   icon,
-  style,
+  className,
 }: BadgeProps) {
-  const skin = skins[status];
-
   return (
     <View
-      style={[styles.base, { backgroundColor: skin.backgroundColor }, style]}
+      className={twMerge(
+        clsx(
+          "shrink-0 flex-row items-center gap-1 self-start rounded-pill px-2.5 py-1",
+          skins[status],
+        ),
+        className,
+      )}
     >
       {icon}
-      <Text style={[styles.label, { color: skin.color }]} numberOfLines={1}>
+      <Text
+        className={clsx("type-caption-semibold", labels[status])}
+        numberOfLines={1}
+      >
         {children}
       </Text>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  base: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: space[2],
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: radius.pill,
-    alignSelf: "flex-start",
-    flexShrink: 0,
-  },
-  label: {
-    ...type.caption,
-    fontWeight: "600",
-  },
-});
