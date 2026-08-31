@@ -22,6 +22,7 @@ import Constants from "expo-constants";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -91,7 +92,25 @@ export default function SettingsScreen() {
 
   const handleLogout = useCallback(async () => {
     haptics.medium();
-    await signOut();
+    Alert.alert(
+      "Déconnexion",
+      "Êtes-vous sûr de vouloir vous déconnecter de l'application ?",
+      [
+        {
+          text: "Annuler",
+          onPress: () => {
+            return;
+          },
+        },
+        {
+          text: "Se déconnecter",
+          onPress: async () => {
+            await signOut();
+          },
+          style: "destructive",
+        },
+      ],
+    );
   }, [signOut]);
 
   const showLoading = isLoading && !prefs;
