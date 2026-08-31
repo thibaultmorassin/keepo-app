@@ -1,7 +1,12 @@
-import { color, radius, space } from "@/theme/tokens";
+import { color, motion, radius, space } from "@/theme/tokens";
 import { fontFamily, type } from "@/theme/typography";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 
 type StatTileTone = "onBrand" | "plain" | "covered" | "expiring" | "expired";
 
@@ -42,6 +47,7 @@ const skins: Record<
   },
 };
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 export function StatTile({
   value,
   label,
@@ -51,9 +57,25 @@ export function StatTile({
 }: StatTileProps) {
   const skin = skins[tone];
 
+  const scale = useSharedValue(1);
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
   return (
-    <View
-      style={[styles.base, { backgroundColor: skin.backgroundColor }, style]}
+    <AnimatedPressable
+      onPressIn={() => {
+        scale.value = withSpring(motion.pressScale);
+      }}
+      onPressOut={() => {
+        scale.value = withSpring(1);
+      }}
+      style={[
+        styles.base,
+        { backgroundColor: skin.backgroundColor },
+        animatedStyle,
+        style,
+      ]}
       {...props}
     >
       <Text style={[styles.value, { color: skin.color }]}>{value}</Text>
@@ -65,7 +87,7 @@ export function StatTile({
       >
         {label}
       </Text>
-    </View>
+    </AnimatedPressable>
   );
 }
 

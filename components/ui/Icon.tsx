@@ -1,3 +1,4 @@
+import { color } from "@/theme/tokens";
 import {
   BellRing,
   Bike,
@@ -35,7 +36,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react-native";
-import { color } from "@/theme/tokens";
+import React from "react";
 
 const ICONS = {
   "bell-ring": BellRing,
@@ -76,7 +77,7 @@ const ICONS = {
 
 export type IconName = keyof typeof ICONS;
 
-type IconProps = {
+type IconProps = React.ComponentProps<LucideIcon> & {
   name: IconName;
   size?: number;
   strokeWidth?: number;
@@ -90,14 +91,17 @@ export function Icon({
   strokeWidth = 2.25,
   color: iconColor = color.textPrimary,
   accessibilityLabel,
+  ...props
 }: IconProps) {
   const LucideIcon = ICONS[name];
+
   return (
     <LucideIcon
       size={size}
       strokeWidth={strokeWidth}
       color={iconColor}
       accessibilityLabel={accessibilityLabel}
+      {...props}
     />
   );
 }
