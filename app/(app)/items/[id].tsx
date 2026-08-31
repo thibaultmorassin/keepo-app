@@ -1,5 +1,4 @@
 import { SyncErrorState } from "@/components/home/HomeStates";
-import { TAB_BAR_HEIGHT } from "@/components/home/TabBar";
 import { ItemDetailSkeleton } from "@/components/item/ItemDetailSkeleton";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -172,7 +171,7 @@ function ItemDetailScreen() {
           styles.content,
           {
             paddingTop: insets.top + space[11],
-            paddingBottom: insets.bottom + TAB_BAR_HEIGHT + 120,
+            paddingBottom: insets.bottom + 120,
           },
         ]}
         refreshControl={
@@ -354,10 +353,7 @@ function ItemDetailScreen() {
       {item && !isDeleted && !showLoading && !showSyncError ? (
         <LinearGradient
           colors={[`${color.bgApp}00`, color.bgApp]}
-          style={[
-            styles.footer,
-            { bottom: TAB_BAR_HEIGHT, paddingBottom: 18 },
-          ]}
+          style={[styles.footer, { paddingBottom: insets.bottom + 18 }]}
           pointerEvents="box-none"
         >
           <Button variant="claim" size="lg" full onPress={handleClaim}>
