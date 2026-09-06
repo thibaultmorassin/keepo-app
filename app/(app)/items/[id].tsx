@@ -117,8 +117,9 @@ function ItemDetailScreen() {
 
   const handleClaim = useCallback(() => {
     haptics.heavy();
-    // Claim flow not built yet.
-  }, []);
+    if (!item) return;
+    router.push({ pathname: "/declare/issue", params: { itemId: item.id } });
+  }, [item, router]);
 
   const handleQuickAction = useCallback(
     (kind: "receipt" | "manual" | "claim") => {
