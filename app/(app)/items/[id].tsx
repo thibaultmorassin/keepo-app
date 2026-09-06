@@ -1,6 +1,7 @@
 import { SyncErrorState } from "@/components/home/HomeStates";
 import clsx from "clsx";
 import { ItemDetailSkeleton } from "@/components/item/ItemDetailSkeleton";
+import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { CoverageBar } from "@/components/ui/CoverageBar";
@@ -8,13 +9,21 @@ import { DocumentRow } from "@/components/ui/DocumentRow";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
+import { ReceiptPreviewModal } from "@/components/ui/ReceiptPreviewModal";
+import { ScreenBackButton } from "@/components/ui/ScreenBackButton";
+import { ScreenMenuButton } from "@/components/ui/ScreenMenuButton";
+import { useSession } from "@/contexts/session";
 import { color } from "@/theme/tokens";
 import { ScrollView, Text, View } from "@/tw";
 import { Animated } from "@/tw/animated";
+import { claimIssueGroupIcon, claimStatus, claimStatusLabel } from "@/utils/claims";
 import type { Tables } from "@/utils/database.types";
 import { formatEuro, formatFileSize, formatShortDate } from "@/utils/format";
 import { haptics } from "@/utils/haptics";
-import { itemDocuments$, items$ } from "@/utils/SupaLegend";
+import { deleteItem } from "@/utils/items";
+import { ownedClaims, ownedDocuments, ownedItems } from "@/utils/ownership";
+import { type PickedReceipt, downloadReceiptFile } from "@/utils/receipts";
+import { claims$, itemDocuments$, items$ } from "@/utils/SupaLegend";
 import {
   categoryIcon,
   elapsedPct,
@@ -29,11 +38,18 @@ import { observer } from "@legendapp/state/react";
 import { LinearGradient } from "expo-linear-gradient";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { RefreshControl } from "react-native";
+import {
+  ActionSheetIOS,
+  ActivityIndicator,
+  Alert,
+  Platform,
+  RefreshControl,
+} from "react-native";
 import { FadeIn, FadeInDown, useReducedMotion } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type ItemDocument = Tables<"item_documents">;
+type Claim = Tables<"claims">;
 
 const STAGGER = 40;
 
@@ -55,7 +71,11 @@ const statusIconColors: Record<WarrantyStatus | "unknown", string> = {
 function documentMeta(doc: ItemDocument): string {
   const typeLabel = doc.file_type?.toUpperCase() ?? "FICHIER";
   const sizeLabel = doc.file_size ? formatFileSize(doc.file_size) : "—";
-  const dateLabel = formatShortDate(doc.created_at.slice(0, 10));
+  // `created_at` can be briefly absent on a row that was just created locally
+  // and hasn't round-tripped through Supabase yet.
+  const dateLabel = doc.created_at
+    ? formatShortDate(doc.created_at.slice(0, 10))
+    : "à l'instant";
   return `${typeLabel} · ${sizeLabel} · ajouté le ${dateLabel}`;
 }
 
@@ -64,17 +84,22 @@ function ItemDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
+  const { session } = useSession();
   const [refreshing, setRefreshing] = useState(false);
+  const [previewReceipt, setPreviewReceipt] = useState<PickedReceipt | null>(
+    null,
+  );
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [openingDocId, setOpeningDocId] = useState<string | null>(null);
+  const [openError, setOpenError] = useState<string | null>(null);
 
   const itemsState = syncState(items$);
   const documentsState = syncState(itemDocuments$);
+  const claimsState = syncState(claims$);
 
-  const itemsRecord = items$.get() as
-    | Record<string, Tables<"items">>
-    | undefined;
-  const documentsRecord = itemDocuments$.get() as
-    | Record<string, ItemDocument>
-    | undefined;
+  const itemsRecord = ownedItems(session?.user.id);
+  const documentsRecord = ownedDocuments(itemsRecord);
+  const claimsRecord = ownedClaims(session?.user.id);
 
   const item = id ? itemsRecord?.[id] : undefined;
   const isDeleted = !!item?.deleted;
@@ -86,10 +111,24 @@ function ItemDetailScreen() {
     );
   }, [documentsRecord, id]);
 
+  const claims = useMemo(() => {
+    if (!id) return [];
+    return Object.values(claimsRecord ?? {})
+      .filter((claim) => claim.item_id === id && !claim.deleted)
+      .sort((a, b) =>
+        (b.sent_at ?? b.created_at ?? "").localeCompare(
+          a.sent_at ?? a.created_at ?? "",
+        ),
+      );
+  }, [claimsRecord, id]);
+
   const isPersistLoaded =
-    itemsState.isPersistLoaded.get() && documentsState.isPersistLoaded.get();
+    itemsState.isPersistLoaded.get() &&
+    documentsState.isPersistLoaded.get() &&
+    claimsState.isPersistLoaded.get();
   const isLoaded = itemsState.isLoaded.get();
-  const syncError = itemsState.error.get() ?? documentsState.error.get();
+  const syncError =
+    itemsState.error.get() ?? documentsState.error.get() ?? claimsState.error.get();
   const hasCachedItem = !!item && !isDeleted;
 
   const showLoading =
@@ -104,11 +143,15 @@ function ItemDetailScreen() {
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await Promise.all([itemsState.sync(), documentsState.sync()]);
+      await Promise.all([
+        itemsState.sync(),
+        documentsState.sync(),
+        claimsState.sync(),
+      ]);
     } finally {
       setRefreshing(false);
     }
-  }, [documentsState, itemsState]);
+  }, [claimsState, documentsState, itemsState]);
 
   const handleBack = useCallback(() => {
     haptics.light();
@@ -121,6 +164,80 @@ function ItemDetailScreen() {
     router.push({ pathname: "/declare/issue", params: { itemId: item.id } });
   }, [item, router]);
 
+  const handleEdit = useCallback(() => {
+    if (!item) return;
+    haptics.light();
+    router.push({ pathname: "/add/manual", params: { id: item.id } });
+  }, [item, router]);
+
+  const handleDelete = useCallback(() => {
+    if (!item) return;
+    Alert.alert(
+      "Supprimer cet objet ?",
+      "Cette action est irréversible. Son historique de réclamations reste consultable depuis les réclamations en cours.",
+      [
+        { text: "Annuler", style: "cancel" },
+        {
+          text: "Supprimer",
+          style: "destructive",
+          onPress: () => {
+            haptics.medium();
+            deleteItem(item);
+            router.back();
+          },
+        },
+      ],
+    );
+  }, [item, router]);
+
+  const handleMenu = useCallback(() => {
+    if (!item) return;
+
+    if (Platform.OS === "ios") {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ["Modifier", "Supprimer", "Annuler"],
+          destructiveButtonIndex: 1,
+          cancelButtonIndex: 2,
+        },
+        (index) => {
+          if (index === 0) handleEdit();
+          else if (index === 1) handleDelete();
+        },
+      );
+      return;
+    }
+
+    Alert.alert("Cet objet", undefined, [
+      { text: "Modifier", onPress: handleEdit },
+      { text: "Supprimer", style: "destructive", onPress: handleDelete },
+      { text: "Annuler", style: "cancel" },
+    ]);
+  }, [item, handleEdit, handleDelete]);
+
+  const handleOpenDocument = useCallback(async (doc: ItemDocument) => {
+    if (openingDocId) return;
+
+    haptics.medium();
+    setOpenError(null);
+    setOpeningDocId(doc.id);
+
+    try {
+      const uri = await downloadReceiptFile(doc);
+      setPreviewReceipt({
+        uri,
+        name: doc.file_name,
+        size: doc.file_size,
+        mimeType: doc.file_type,
+      });
+      setPreviewOpen(true);
+    } catch {
+      setOpenError("Impossible d'ouvrir ce document. Réessayez.");
+    } finally {
+      setOpeningDocId(null);
+    }
+  }, [openingDocId]);
+
   const handleQuickAction = useCallback(
     (kind: "receipt" | "manual" | "claim") => {
       if (kind === "claim") {
@@ -128,16 +245,25 @@ function ItemDetailScreen() {
         return;
       }
 
-      haptics.medium();
-      // Document open / add flow not built yet.
-    },
-    [handleClaim],
-  );
+      if (kind === "receipt") {
+        // The most recently added document stands in for "the receipt" —
+        // same convention as the claim message screen.
+        const latest = documents
+          .slice()
+          .sort((a, b) =>
+            (b.created_at ?? "").localeCompare(a.created_at ?? ""),
+          )[0];
+        if (latest) {
+          void handleOpenDocument(latest);
+          return;
+        }
+      }
 
-  const handleDocumentDownload = useCallback(() => {
-    haptics.medium();
-    // Storage download not built yet.
-  }, []);
+      haptics.medium();
+      // "Notice" (product manual) add flow not built yet.
+    },
+    [documents, handleClaim, handleOpenDocument],
+  );
 
   const entering = reduceMotion
     ? (delay: number) => FadeIn.delay(delay).duration(220)
@@ -173,7 +299,11 @@ function ItemDetailScreen() {
         {showSyncError ? (
           <SyncErrorState
             onRetry={() => {
-              void Promise.all([itemsState.sync(), documentsState.sync()]);
+              void Promise.all([
+                itemsState.sync(),
+                documentsState.sync(),
+                claimsState.sync(),
+              ]);
             }}
           />
         ) : null}
@@ -315,28 +445,105 @@ function ItemDetailScreen() {
               <Text className="type-micro mb-[9px] text-secondary">Documents</Text>
               {documents.length > 0 ? (
                 <View className="gap-2">
-                  {documents.map((doc) => (
-                    <DocumentRow
-                      key={doc.id}
-                      name={doc.file_name}
-                      meta={documentMeta(doc)}
-                      onPress={handleDocumentDownload}
-                      action={
-                        <IconButton
-                          label="Télécharger"
-                          variant="ghost"
-                          size="sm"
-                          onPress={handleDocumentDownload}
-                        >
-                          <Icon name="download" size={19} color={color.brand} />
-                        </IconButton>
-                      }
-                    />
-                  ))}
+                  {documents.map((doc) => {
+                    const opening = openingDocId === doc.id;
+                    return (
+                      <DocumentRow
+                        key={doc.id}
+                        name={doc.file_name}
+                        meta={documentMeta(doc)}
+                        onPress={() => void handleOpenDocument(doc)}
+                        action={
+                          <IconButton
+                            label="Ouvrir le document"
+                            variant="ghost"
+                            size="sm"
+                            onPress={() => void handleOpenDocument(doc)}
+                          >
+                            {opening ? (
+                              <ActivityIndicator
+                                size="small"
+                                color={color.brand}
+                              />
+                            ) : (
+                              <Icon
+                                name="download"
+                                size={19}
+                                color={color.brand}
+                              />
+                            )}
+                          </IconButton>
+                        }
+                      />
+                    );
+                  })}
                 </View>
               ) : (
                 <Text className="type-caption text-muted">
                   Aucun document pour cet objet
+                </Text>
+              )}
+              {openError ? (
+                <Text className="type-caption mt-2 text-claim-fg">
+                  {openError}
+                </Text>
+              ) : null}
+            </Animated.View>
+
+            <Animated.View entering={entering(STAGGER * 5)}>
+              <Text className="type-micro mb-[9px] text-secondary">
+                Réclamations
+              </Text>
+              {claims.length > 0 ? (
+                <View className="gap-2">
+                  {claims.map((claim) => {
+                    const claimStatusValue = claimStatus(claim);
+                    const dateIso = claim.sent_at ?? claim.created_at;
+                    return (
+                      <View
+                        key={claim.id}
+                        className="flex-row items-center gap-3 rounded-card bg-card p-3 shadow-sm"
+                      >
+                        <View className="size-10 shrink-0 items-center justify-center rounded-full bg-claim-bg">
+                          <Icon
+                            name={claimIssueGroupIcon(claim.issue_group)}
+                            size={18}
+                            color={color.brandStrong}
+                          />
+                        </View>
+                        <View className="min-w-0 flex-1">
+                          <Text
+                            className="type-body-semibold text-primary"
+                            numberOfLines={1}
+                          >
+                            {claim.issue}
+                          </Text>
+                          <Text
+                            className="type-caption mt-0.5 text-muted"
+                            numberOfLines={1}
+                          >
+                            {claim.recipient}
+                            {dateIso
+                              ? ` · ${formatShortDate(dateIso.slice(0, 10))}`
+                              : ""}
+                          </Text>
+                        </View>
+                        <Badge
+                          status={
+                            claimStatusValue === "resolved"
+                              ? "covered"
+                              : "claim"
+                          }
+                        >
+                          {claimStatusLabel(claimStatusValue)}
+                        </Badge>
+                      </View>
+                    );
+                  })}
+                </View>
+              ) : (
+                <Text className="type-caption text-muted">
+                  Aucune réclamation pour cet objet
                 </Text>
               )}
             </Animated.View>
@@ -362,6 +569,17 @@ function ItemDetailScreen() {
             Déclarer un problème
           </Button>
         </LinearGradient>
+      ) : null}
+
+      <ReceiptPreviewModal
+        visible={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        receipt={previewReceipt}
+      />
+
+      <ScreenBackButton onPress={handleBack} />
+      {item && !isDeleted && !showLoading && !showSyncError ? (
+        <ScreenMenuButton onPress={handleMenu} />
       ) : null}
     </View>
   );
