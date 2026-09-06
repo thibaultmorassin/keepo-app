@@ -2,7 +2,7 @@ import type { TablesInsert } from "@/utils/database.types";
 import { generateId, itemDocuments$ } from "@/utils/SupaLegend";
 import { supabase } from "@/utils/supabase";
 import * as DocumentPicker from "expo-document-picker";
-import { File } from "expo-file-system";
+import { Directory, File, Paths } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 
 const BUCKET = "receipts";
@@ -126,4 +126,30 @@ export async function uploadReceipt(
     file_type: receipt.mimeType,
     storage_path: path,
   });
+}
+
+/**
+ * Downloads a private storage document to a local cache file and returns its
+ * `file://` URI — what a native share sheet or mail composer needs, since
+ * they can't reach into the private bucket directly. Used to forward the
+ * item's receipt as a real attachment on the claim email.
+ */
+export async function downloadReceiptFile(doc: {
+  storage_path: string;
+}): Promise<string> {
+  const { data, error } = await supabase.storage
+    .from(BUCKET)
+    .createSignedUrl(doc.storage_path, 60);
+
+  if (error || !data?.signedUrl) {
+    throw error ?? new Error("Impossible de générer un lien vers le reçu.");
+  }
+
+  const file = await File.downloadFileAsync(
+    data.signedUrl,
+    new Directory(Paths.cache),
+    { idempotent: true },
+  );
+
+  return file.uri;
 }
