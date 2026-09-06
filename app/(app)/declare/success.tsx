@@ -21,7 +21,10 @@ import {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 /** How long the celebration holds before it takes itself off screen. */
 const SUCCESS_HOLD_MS = 5000;
@@ -82,7 +85,7 @@ function ClaimSuccessScreen() {
     : (delay: number) => FadeInDown.delay(delay).duration(220);
 
   return (
-    <View className="flex-1 bg-app px-gutter pt-5">
+    <SafeAreaView className="flex-1 bg-app px-gutter pt-5" edges={["bottom"]}>
       <View className="flex-1 items-center justify-center gap-3">
         <View className="mb-3 size-27 items-center justify-center rounded-pill bg-claim-bg">
           {!reduceMotion ? <Confetti /> : null}
@@ -141,7 +144,7 @@ function ClaimSuccessScreen() {
           Terminé
         </Button>
       </Animated.View>
-    </View>
+    </SafeAreaView>
   );
 }
 

@@ -18,13 +18,36 @@ import {
 import { syncState } from "@legendapp/state";
 import { observer } from "@legendapp/state/react";
 import { router } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function DeclareItemPickerScreen() {
   const insets = useSafeAreaInsets();
-  const { setItemId, reset } = useClaimDraft();
+  const { itemId, setItemId } = useClaimDraft();
   const [query, setQuery] = useState("");
+
+  // Captured once, at this screen instance's very first mount — an existing
+  // draft to resume past. Deliberately NOT the live `itemId`: once the user
+  // picks an item below, `itemId` becomes truthy on this same still-mounted
+  // instance, and if they later come back here via the back button (to pick
+  // a different item instead) this must stay null, or the guard below would
+  // wrongly keep blanking the picker.
+  const [resumeItemId] = useState(() => itemId);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  // Resuming an in-progress draft (the user closed the modal partway
+  // through) should skip straight past the steps already answered, not
+  // re-show the item choice they already made. This always hands off to the
+  // issue step (never straight to a later one) — `issue.tsx` decides for
+  // itself whether *it* should hand off further, so every step the user
+  // actually answered stays in the navigation stack and the back button
+  // keeps working, instead of jumping straight to the furthest step with
+  // nothing behind it to go back to.
+  useEffect(() => {
+    if (resumeItemId) router.push("/declare/issue");
+    setIsInitializing(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const itemsState = syncState(items$);
   const itemsRecord = items$.get() as
@@ -48,9 +71,10 @@ function DeclareItemPickerScreen() {
 
   const handleClose = useCallback(() => {
     haptics.light();
-    reset();
+    // Deliberately not resetting the draft here — closing the modal partway
+    // through should let the user resume exactly where they left off.
     router.back();
-  }, [reset]);
+  }, []);
 
   const handlePick = useCallback(
     (id: string) => {
@@ -60,6 +84,14 @@ function DeclareItemPickerScreen() {
     },
     [setItemId],
   );
+
+  // About to redirect away (see the effect above) — render nothing rather
+  // than flash the item list for a frame. Only true for the initial render,
+  // never again once mounted, so a later back-visit shows the picker for
+  // real.
+  if (isInitializing && resumeItemId) {
+    return <View className="flex-1 bg-app" />;
+  }
 
   return (
     <View className="flex-1 bg-app">
