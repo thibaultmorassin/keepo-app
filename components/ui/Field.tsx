@@ -16,6 +16,8 @@ type FieldProps = {
   error?: string;
   secureTextEntry?: boolean;
   suffix?: string;
+  multiline?: boolean;
+  numberOfLines?: number;
   className?: string;
 } & Pick<
   TextInputProps,
@@ -35,6 +37,8 @@ export function Field({
   error,
   secureTextEntry = false,
   suffix,
+  multiline = false,
+  numberOfLines,
   className,
   ...inputProps
 }: FieldProps) {
@@ -51,6 +55,9 @@ export function Field({
           placeholder={placeholder}
           placeholderTextColor={color.textMuted}
           secureTextEntry={hidden}
+          multiline={multiline}
+          numberOfLines={multiline ? (numberOfLines ?? 4) : undefined}
+          textAlignVertical={multiline ? "top" : undefined}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
           className={clsx(
@@ -59,6 +66,7 @@ export function Field({
             focused && "border-2 border-green-200 px-3.25 py-2.75",
             error && "border-claim-fg",
             (secureTextEntry || suffix) && "pr-12",
+            multiline && "min-h-[110px] py-3",
           )}
           {...inputProps}
         />
