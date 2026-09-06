@@ -12,6 +12,7 @@ type CoverageHeroProps = {
   expiringCount: number;
   expiredCount: number;
   onFilterChange: (filter: WarrantyFilter) => void;
+  onOpenClaims?: () => void;
 };
 
 const TILE = "flex-1 shrink-0 active:scale-[0.98]";
@@ -24,6 +25,7 @@ export function CoverageHero({
   expiringCount,
   expiredCount,
   onFilterChange,
+  onOpenClaims,
 }: CoverageHeroProps) {
   return (
     <Card tone="brand" size="hero" className="relative overflow-hidden">
@@ -36,7 +38,17 @@ export function CoverageHero({
           {formatEuro(totalCoveredValue)}
         </Text>
         <Text className="type-body mt-1 text-on-dark opacity-[0.88]">
-          sur {totalItems} objets suivis · {openClaimsLabel(openClaims)}
+          sur {totalItems} objets suivis ·{" "}
+          {openClaims > 0 && onOpenClaims ? (
+            <Text
+              className="type-body font-sans-semibold font-semibold text-on-dark underline"
+              onPress={onOpenClaims}
+            >
+              {openClaimsLabel(openClaims)}
+            </Text>
+          ) : (
+            openClaimsLabel(openClaims)
+          )}
         </Text>
         <View className="mt-[18px] flex-row gap-2">
           <Pressable onPress={() => onFilterChange("covered")} className={TILE}>

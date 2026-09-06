@@ -16,8 +16,8 @@ import { useSession } from "@/contexts/session";
 import { color } from "@/theme/tokens";
 import { ScrollView, View } from "@/tw";
 import { claims$, items$ } from "@/utils/SupaLegend";
-import type { Tables } from "@/utils/database.types";
 import { haptics } from "@/utils/haptics";
+import { ownedClaims, ownedItems } from "@/utils/ownership";
 import {
   categoryIcon,
   deriveHomeStats,
@@ -50,12 +50,8 @@ function HomeScreen() {
   const itemsState = syncState(items$);
   const claimsState = syncState(claims$);
 
-  const itemsRecord = items$.get() as
-    | Record<string, Tables<"items">>
-    | undefined;
-  const claimsRecord = claims$.get() as
-    | Record<string, Tables<"claims">>
-    | undefined;
+  const itemsRecord = ownedItems(session?.user.id);
+  const claimsRecord = ownedClaims(session?.user.id);
 
   const items = useMemo(
     () => Object.values(itemsRecord ?? {}).filter((item) => !item.deleted),
@@ -110,6 +106,11 @@ function HomeScreen() {
     router.push("/add");
   }, [router]);
 
+  const handleOpenClaims = useCallback(() => {
+    haptics.light();
+    router.push("/claims" as Href);
+  }, [router]);
+
   return (
     <View className="flex-1 bg-app">
       <ScrollView
@@ -158,6 +159,7 @@ function HomeScreen() {
               expiringCount={stats.expiringCount}
               expiredCount={stats.expiredCount}
               onFilterChange={setFilter}
+              onOpenClaims={handleOpenClaims}
             />
 
             {stats.expiringItem ? (

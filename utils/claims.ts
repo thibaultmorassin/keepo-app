@@ -1,7 +1,9 @@
 import type { IconName } from "@/components/ui/Icon";
 import { claims$, generateId } from "@/utils/SupaLegend";
-import type { TablesInsert } from "@/utils/database.types";
+import type { Tables, TablesInsert } from "@/utils/database.types";
 import { formatShortDate } from "@/utils/format";
+
+type Claim = Tables<"claims">;
 
 /** The three issue groups the claim wizard offers, each with its own options. */
 export const ISSUES = [
@@ -105,6 +107,45 @@ export function markClaimSent(claimId: string): void {
     { sent_at: { set: (value: string) => void } }
   >;
   store[claimId].sent_at.set(new Date().toISOString());
+}
+
+export type ClaimStatus = "pending" | "resolved";
+
+/**
+ * A claim only ever lands in the store already sent (see `createClaim`), so
+ * the only distinction worth surfacing to the user is whether it's still
+ * waiting on a reply.
+ */
+export function claimStatus(claim: Pick<Claim, "resolved_at">): ClaimStatus {
+  return claim.resolved_at ? "resolved" : "pending";
+}
+
+export function claimStatusLabel(status: ClaimStatus): string {
+  return status === "resolved" ? "Résolue" : "En attente";
+}
+
+/** The icon of the issue group a claim was filed under — falls back for data predating a group rename. */
+export function claimIssueGroupIcon(issueGroup: string): IconName {
+  return (
+    ISSUES.find((group) => group.title === issueGroup)?.icon ??
+    "triangle-alert"
+  );
+}
+
+/** Whole days elapsed since a claim was sent — used to flag ones going quiet. */
+export function daysSinceSent(sentAt: string, now: Date = new Date()): number {
+  const msPerDay = 1000 * 60 * 60 * 24;
+  return Math.max(
+    0,
+    Math.floor((now.getTime() - new Date(sentAt).getTime()) / msPerDay),
+  );
+}
+
+export function daysSinceSentLabel(sentAt: string, now: Date = new Date()): string {
+  const days = daysSinceSent(sentAt, now);
+  if (days === 0) return "Envoyée aujourd'hui";
+  if (days === 1) return "Envoyée hier";
+  return `Envoyée il y a ${days} j`;
 }
 
 export type FallbackMessageInput = {
