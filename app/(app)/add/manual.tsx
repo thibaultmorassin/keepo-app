@@ -22,9 +22,12 @@ import {
   DURATIONS,
   endDateForDuration,
   monthsForDuration,
+  parseIsoDate,
   parsePriceInput,
   toIsoDate,
+  updateItem,
 } from "@/utils/items";
+import { ownedItems } from "@/utils/ownership";
 import {
   type PickedReceipt,
   pickReceiptDocument,
@@ -35,7 +38,7 @@ import {
 } from "@/utils/receipts";
 import { DEFAULT_REMINDER_DAYS } from "@/utils/warranty";
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -67,6 +70,14 @@ type FormValues = {
 export default function AddManualScreen() {
   const insets = useSafeAreaInsets();
   const { session } = useSession();
+  // Present from the item detail screen's "Modifier" menu action — same
+  // form, but seeded from the existing item and writing an update instead
+  // of a create.
+  const { id: editId } = useLocalSearchParams<{ id?: string }>();
+  const isEditing = !!editId;
+  const existingItem = editId
+    ? ownedItems(session?.user.id)[editId]
+    : undefined;
 
   const {
     control,
@@ -76,26 +87,30 @@ export default function AddManualScreen() {
     formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
-      title: "",
-      category: null,
-      price: "",
-      purchaseDate: null,
-      store: "",
-      warrantyEndDate: endDateForDuration(
-        null,
-        monthsForDuration(DEFAULT_DURATION),
-      ),
-      reminderEnabled: true,
+      title: existingItem?.title ?? "",
+      category: existingItem?.category ?? null,
+      price:
+        existingItem?.price != null ? String(existingItem.price) : "",
+      purchaseDate: existingItem
+        ? parseIsoDate(existingItem.purchase_date)
+        : null,
+      store: existingItem?.store ?? "",
+      warrantyEndDate: existingItem?.warranty_end_date
+        ? parseIsoDate(existingItem.warranty_end_date)
+        : endDateForDuration(null, monthsForDuration(DEFAULT_DURATION)),
+      reminderEnabled: existingItem?.reminder_enabled ?? true,
     },
   });
 
   const purchaseDate = watch("purchaseDate");
 
   // `durationMode` is the active preset, or null once the end date has been
-  // hand-edited to something the presets don't match (e.g. 16 months). It's
-  // a UI-only concern, not a value the form itself submits.
+  // hand-edited to something the presets don't match (e.g. 16 months), or
+  // when editing an item whose duration isn't known to have matched a
+  // preset in the first place. It's a UI-only concern, not a value the form
+  // itself submits.
   const [durationMode, setDurationMode] = useState<DurationLabel | null>(
-    DEFAULT_DURATION,
+    existingItem ? null : DEFAULT_DURATION,
   );
   const [receipt, setReceipt] = useState<PickedReceipt | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -191,6 +206,20 @@ export default function AddManualScreen() {
       setSubmitError(null);
       haptics.medium();
 
+      if (isEditing && existingItem) {
+        updateItem(existingItem, {
+          title: data.title,
+          category: data.category,
+          store: data.store,
+          price: parsePriceInput(data.price),
+          purchaseDate: toIsoDate(data.purchaseDate),
+          warrantyEndDate: toIsoDate(data.warrantyEndDate),
+          reminderEnabled: data.reminderEnabled,
+        });
+        router.back();
+        return;
+      }
+
       const id = createItem({
         userId,
         title: data.title,
@@ -212,7 +241,7 @@ export default function AddManualScreen() {
 
       router.replace({ pathname: "/add/success", params: { id } });
     },
-    [receipt, saving, session],
+    [existingItem, isEditing, receipt, saving, session],
   );
 
   const handleSave = useCallback(() => {
@@ -241,7 +270,9 @@ export default function AddManualScreen() {
             >
               <Icon name="chevron-left" size={19} />
             </IconButton>
-            <Text className="type-heading flex-1 text-primary">Vérifier et enregistrer</Text>
+            <Text className="type-heading flex-1 text-primary">
+              {isEditing ? "Modifier l'objet" : "Vérifier et enregistrer"}
+            </Text>
           </View>
 
           <Card tone="plain" size="hero" className="gap-6">
@@ -373,7 +404,7 @@ export default function AddManualScreen() {
             </View>
           </Card>
 
-          {receipt ? (
+          {isEditing ? null : receipt ? (
             <DocumentRow
               name={receipt.name}
               meta={`${receiptKindLabel(receipt)}${
@@ -453,7 +484,7 @@ export default function AddManualScreen() {
           loading={saving}
           onPress={handleSave}
         >
-          Enregistrer l&apos;objet
+          {isEditing ? "Enregistrer les modifications" : "Enregistrer l'objet"}
         </Button>
       </LinearGradient>
 

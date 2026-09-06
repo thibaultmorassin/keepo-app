@@ -2,13 +2,13 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Confetti } from "@/components/ui/confetti";
 import { Icon } from "@/components/ui/Icon";
+import { useSession } from "@/contexts/session";
 import { color } from "@/theme/tokens";
 import { Text, View } from "@/tw";
 import { Animated } from "@/tw/animated";
-import type { Tables } from "@/utils/database.types";
 import { formatShortDate } from "@/utils/format";
 import { haptics } from "@/utils/haptics";
-import { items$ } from "@/utils/SupaLegend";
+import { ownedItems } from "@/utils/ownership";
 import {
   DEFAULT_REMINDER_DAYS,
   remainingLabel,
@@ -37,11 +37,10 @@ const STAGGER = 60;
 function AddSuccessScreen() {
   const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
+  const { session } = useSession();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  const itemsRecord = items$.get() as
-    | Record<string, Tables<"items">>
-    | undefined;
+  const itemsRecord = ownedItems(session?.user.id);
   const item = id ? itemsRecord?.[id] : undefined;
 
   const dismissed = useRef(false);
