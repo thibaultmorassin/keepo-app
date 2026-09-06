@@ -12,5 +12,10 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "nativewind-env.d.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    // Deno edge functions — a separate runtime, type-checked by `supabase functions serve`/Deno, not this app's tsc.
+    "supabase/functions"
   ]
 }
