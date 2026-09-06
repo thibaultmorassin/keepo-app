@@ -40,12 +40,16 @@ const MONTHS_LONG = [
 
 const THIN_SPACE = "\u202f";
 
+/** Prices carry cents (see `parsePriceInput`) — shown only when non-zero, so a whole euro amount still reads as "649 €". */
 export function formatEuro(amount: number): string {
-  const rounded = Math.round(amount);
-  const formatted = rounded
+  const cents = Math.round(amount * 100);
+  const whole = Math.trunc(cents / 100);
+  const fraction = Math.abs(cents % 100);
+  const wholeFormatted = whole
     .toString()
     .replace(/\B(?=(\d{3})+(?!\d))/g, THIN_SPACE);
-  return `${formatted} €`;
+  if (fraction === 0) return `${wholeFormatted} €`;
+  return `${wholeFormatted},${fraction.toString().padStart(2, "0")} €`;
 }
 
 export function formatShortDate(isoDate: string): string {

@@ -1,4 +1,4 @@
-import type { TablesInsert } from "@/utils/database.types";
+import type { Tables, TablesInsert } from "@/utils/database.types";
 import { generateId, items$ } from "@/utils/SupaLegend";
 
 /**
@@ -85,7 +85,8 @@ export function addMonthsIso(isoDate: string, months: number): string {
 
 /**
  * Parses what a French keypad produces — "1 299,00", "649.5", "649" — into
- * whole euros. Prices are stored in euros, not cents (see `formatEuro`).
+ * euros with cents. Rounds only to the nearest cent, so "99,99" stays
+ * 99.99 instead of collapsing to a whole euro (see `formatEuro` for display).
  */
 export function parsePriceInput(raw: string): number | null {
   const cleaned = raw.replace(/[\s  €]/g, "").replace(",", ".");
@@ -94,7 +95,7 @@ export function parsePriceInput(raw: string): number | null {
   const value = Number(cleaned);
   if (!Number.isFinite(value) || value < 0) return null;
 
-  return Math.round(value);
+  return Math.round(value * 100) / 100;
 }
 
 export type NewItemInput = {
@@ -137,4 +138,51 @@ export function createItem(input: NewItemInput): string {
   });
 
   return id;
+}
+
+export type UpdateItemInput = {
+  title: string;
+  category: string;
+  store?: string | null;
+  price?: number | null;
+  purchaseDate: string;
+  warrantyEndDate: string;
+  reminderEnabled: boolean;
+};
+
+/**
+ * Overwrites an existing item's editable fields. The synced store's typed
+ * accessor only understands a whole-row `.set()` per id (same as
+ * `createItem`), so this rewrites the full row rather than patching
+ * individual fields — `current` should be the live row from `items$`.
+ */
+export function updateItem(
+  current: Tables<"items">,
+  input: UpdateItemInput,
+): void {
+  const store = input.store?.trim();
+
+  itemsStore[current.id].set({
+    ...current,
+    title: input.title.trim(),
+    category: input.category,
+    store: store ? store : null,
+    price: input.price ?? null,
+    purchase_date: input.purchaseDate,
+    warranty_end_date: input.warrantyEndDate,
+    reminder_enabled: input.reminderEnabled,
+    // Left to the `handle_times` trigger, same as `createItem`.
+    created_at: null,
+    updated_at: null,
+  });
+}
+
+/** Soft-deletes an item — the sync layer never issues a hard `DELETE`, it flips this flag (see `fieldDeleted` in `SupaLegend.ts`). */
+export function deleteItem(current: Tables<"items">): void {
+  itemsStore[current.id].set({
+    ...current,
+    deleted: true,
+    created_at: null,
+    updated_at: null,
+  });
 }
