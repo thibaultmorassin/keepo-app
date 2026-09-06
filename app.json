@@ -28,7 +28,8 @@
           "cameraPermission": "Keepo utilise l'appareil photo pour photographier vos reçus."
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-mail-composer"
     ]
   }
 }

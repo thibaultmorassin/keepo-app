@@ -2532,6 +2532,11 @@ expo-blur@~57.0.2:
   resolved "https://registry.yarnpkg.com/expo-blur/-/expo-blur-57.0.2.tgz#a87d7d5f7f038963349b5667d14adc3224b0aedf"
   integrity sha512-Aoud8H8lmlNkbRufyvRLefmGFELdBf1n5Te/Xm+Zx8ORINH+aXL+gKb5mbftFSha860+I7pMArz77TBYz8HDVg==
 
+expo-clipboard@~57.0.1:
+  version "57.0.1"
+  resolved "https://registry.yarnpkg.com/expo-clipboard/-/expo-clipboard-57.0.1.tgz#d0550de548d313793d2240250081e9e453dbaf71"
+  integrity sha512-HWICri4+1ao7S6QEfcorxVumXDiDnx1guGGewjZgGJWLGxFYs0RgH8ujBs+lkTzBkMmlwADaWSlaesR+nDJt5Q==
+
 expo-constants@~57.0.10, expo-constants@~57.0.9:
   version "57.0.10"
   resolved "https://registry.yarnpkg.com/expo-constants/-/expo-constants-57.0.10.tgz#97ca58cf0eb30f39fb28c2da9a74fc83d4fe42e3"
@@ -2609,6 +2614,11 @@ expo-linking@~57.0.5:
   dependencies:
     expo-constants "~57.0.9"
     invariant "^2.2.4"
+
+expo-mail-composer@~57.0.1:
+  version "57.0.1"
+  resolved "https://registry.yarnpkg.com/expo-mail-composer/-/expo-mail-composer-57.0.1.tgz#e131e3da0a3e4c210c5e6584415393dc7da57354"
+  integrity sha512-6AFey5bULnkE2ZQD20Q31eM8CpoRgkhOcT/4Y08jBHFSxxEy8aAzsbrzc/RpVT42E7I/HSL2JHdfr+HZ9tofrA==
 
 expo-modules-autolinking@~57.0.12:
   version "57.0.12"
