@@ -84,6 +84,21 @@ export const itemDocuments$ = observable(
   }),
 );
 
+/**
+ * Wipes the on-disk AsyncStorage cache for all three stores on sign-out.
+ *
+ * This does NOT clear the in-memory value of `items$` / `claims$` /
+ * `itemDocuments$` — Legend State's `clearPersist` only deletes the
+ * persisted copy, and `.set({})`-ing a synced observable directly is not a
+ * safe substitute: in "merge" mode it reads as "the user deleted every one
+ * of these rows" and queues real delete/update calls for all of them. So a
+ * previous account's rows can keep sitting in memory (or reappear from a
+ * lingering realtime event) after a different account signs in on the same
+ * device, for as long as the process stays alive. Every screen must read
+ * these stores through `utils/ownership.ts`, which filters by the
+ * currently-signed-in user, rather than trusting this to have fully reset
+ * the world.
+ */
 export async function clearSyncedPersistence() {
   await Promise.all([
     syncState(items$).clearPersist(),

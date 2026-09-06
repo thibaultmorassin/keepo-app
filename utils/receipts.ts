@@ -125,6 +125,12 @@ export async function uploadReceipt(
     file_size: receipt.size ?? bytes.byteLength,
     file_type: receipt.mimeType,
     storage_path: path,
+    // Unlike `items`/`claims`, this table has no `handle_times` trigger to
+    // fall back on, and the item detail screen reads `created_at` straight
+    // off the row (see `documentMeta`) — leaving it unset crashed the app
+    // the moment the newly-added document rendered, before the real
+    // server-assigned value synced back.
+    created_at: new Date().toISOString(),
   });
 }
 
