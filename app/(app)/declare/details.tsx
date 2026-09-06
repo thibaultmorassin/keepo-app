@@ -10,8 +10,8 @@ import { useSession } from "@/contexts/session";
 import { color } from "@/theme/tokens";
 import { Image, Pressable, ScrollView, Text, View } from "@/tw";
 import { RECIPIENTS, type Recipient } from "@/utils/claims";
-import type { Tables } from "@/utils/database.types";
 import { haptics } from "@/utils/haptics";
+import { ownedItems } from "@/utils/ownership";
 import {
   pickReceiptDocument,
   pickReceiptFromCamera,
@@ -19,7 +19,6 @@ import {
   uploadReceipt,
   type PickedReceipt,
 } from "@/utils/receipts";
-import { items$ } from "@/utils/SupaLegend";
 import { observer } from "@legendapp/state/react";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
@@ -49,9 +48,7 @@ function ClaimDetailsScreen() {
     addPhoto,
   } = useClaimDraft();
 
-  const itemsRecord = items$.get() as
-    | Record<string, Tables<"items">>
-    | undefined;
+  const itemsRecord = ownedItems(session?.user.id);
   const item = itemId ? itemsRecord?.[itemId] : undefined;
 
   const runPicker = useCallback(

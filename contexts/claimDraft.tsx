@@ -4,13 +4,12 @@ import { observable } from "@legendapp/state";
 
 /**
  * The in-progress claim, kept in a module-level Legend State observable
- * rather than component state. The `declare` modal's own screens (and their
- * `ClaimDraftProvider` predecessor) unmount every time the modal is
- * dismissed, so anything held in `useState` there is wiped on close — this
- * lives outside that tree, so closing and reopening the flow resumes exactly
- * where the user left it. Never persisted to AsyncStorage: it's cleared by
- * `reset()` once a claim is actually sent, and simply doesn't survive an app
- * kill — an in-progress draft is not meant to outlive the session.
+ * rather than component state, because the `declare` modal's own screens
+ * unmount every time a step is popped — `useState` there wouldn't survive
+ * navigating from step 2 back to step 1. Never persisted to AsyncStorage,
+ * and explicitly reset whenever the modal itself closes (see
+ * `declare/_layout.tsx`) — closing partway through starts over, it does not
+ * resume.
  *
  * Read from inside a component wrapped in `observer()` (every `declare/*`
  * screen already is, per the app's Legend State convention) so `.get()`
@@ -102,10 +101,12 @@ function setMessages(messages: Record<Tone, string> | null) {
   draft$.messages.set(messages);
 }
 
-/** Only meant to be called once a claim is actually sent — not on modal close, which should resume the draft. */
 function reset() {
   draft$.set(createInitialState());
 }
+
+/** Called once a claim is actually sent, and whenever the `declare` modal itself unmounts — see `declare/_layout.tsx`. */
+export const resetClaimDraft = reset;
 
 export function useClaimDraft() {
   return {

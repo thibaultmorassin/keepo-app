@@ -4,10 +4,11 @@ import { Icon } from "@/components/ui/Icon";
 import { IconButton } from "@/components/ui/IconButton";
 import { ItemRow } from "@/components/ui/ItemRow";
 import { useClaimDraft } from "@/contexts/claimDraft";
+import { useSession } from "@/contexts/session";
 import { color } from "@/theme/tokens";
 import { ScrollView, Text, TextInput, View } from "@/tw";
-import type { Tables } from "@/utils/database.types";
 import { haptics } from "@/utils/haptics";
+import { ownedItems } from "@/utils/ownership";
 import { items$ } from "@/utils/SupaLegend";
 import {
   categoryIcon,
@@ -18,41 +19,17 @@ import {
 import { syncState } from "@legendapp/state";
 import { observer } from "@legendapp/state/react";
 import { router } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function DeclareItemPickerScreen() {
   const insets = useSafeAreaInsets();
-  const { itemId, setItemId } = useClaimDraft();
+  const { session } = useSession();
+  const { setItemId } = useClaimDraft();
   const [query, setQuery] = useState("");
 
-  // Captured once, at this screen instance's very first mount — an existing
-  // draft to resume past. Deliberately NOT the live `itemId`: once the user
-  // picks an item below, `itemId` becomes truthy on this same still-mounted
-  // instance, and if they later come back here via the back button (to pick
-  // a different item instead) this must stay null, or the guard below would
-  // wrongly keep blanking the picker.
-  const [resumeItemId] = useState(() => itemId);
-  const [isInitializing, setIsInitializing] = useState(true);
-
-  // Resuming an in-progress draft (the user closed the modal partway
-  // through) should skip straight past the steps already answered, not
-  // re-show the item choice they already made. This always hands off to the
-  // issue step (never straight to a later one) — `issue.tsx` decides for
-  // itself whether *it* should hand off further, so every step the user
-  // actually answered stays in the navigation stack and the back button
-  // keeps working, instead of jumping straight to the furthest step with
-  // nothing behind it to go back to.
-  useEffect(() => {
-    if (resumeItemId) router.push("/declare/issue");
-    setIsInitializing(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const itemsState = syncState(items$);
-  const itemsRecord = items$.get() as
-    | Record<string, Tables<"items">>
-    | undefined;
+  const itemsRecord = ownedItems(session?.user.id);
 
   const items = useMemo(
     () => Object.values(itemsRecord ?? {}).filter((item) => !item.deleted),
@@ -71,8 +48,7 @@ function DeclareItemPickerScreen() {
 
   const handleClose = useCallback(() => {
     haptics.light();
-    // Deliberately not resetting the draft here — closing the modal partway
-    // through should let the user resume exactly where they left off.
+    // The draft itself resets on unmount — see `declare/_layout.tsx`.
     router.back();
   }, []);
 
@@ -84,14 +60,6 @@ function DeclareItemPickerScreen() {
     },
     [setItemId],
   );
-
-  // About to redirect away (see the effect above) — render nothing rather
-  // than flash the item list for a frame. Only true for the initial render,
-  // never again once mounted, so a later back-visit shows the picker for
-  // real.
-  if (isInitializing && resumeItemId) {
-    return <View className="flex-1 bg-app" />;
-  }
 
   return (
     <View className="flex-1 bg-app">

@@ -16,13 +16,12 @@ import {
   type FallbackMessageInput,
   type Tone,
 } from "@/utils/claims";
-import type { Tables } from "@/utils/database.types";
 import { formatFileSize } from "@/utils/format";
 import { haptics } from "@/utils/haptics";
+import { ownedDocuments, ownedItems } from "@/utils/ownership";
 import { fetchProfilePrefs } from "@/utils/profile";
 import { downloadReceiptFile } from "@/utils/receipts";
 import { supabase } from "@/utils/supabase";
-import { itemDocuments$, items$ } from "@/utils/SupaLegend";
 import { observer } from "@legendapp/state/react";
 import * as Clipboard from "expo-clipboard";
 import { LinearGradient } from "expo-linear-gradient";
@@ -58,14 +57,10 @@ function ClaimMessageScreen() {
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
 
-  const itemsRecord = items$.get() as
-    | Record<string, Tables<"items">>
-    | undefined;
+  const itemsRecord = ownedItems(session?.user.id);
   const item = itemId ? itemsRecord?.[itemId] : undefined;
 
-  const documentsRecord = itemDocuments$.get() as
-    | Record<string, Tables<"item_documents">>
-    | undefined;
+  const documentsRecord = ownedDocuments(itemsRecord);
   // The item's most recent document — best-effort stand-in for "the receipt"
   // (there's no `role` column distinguishing a purchase receipt from a claim
   // evidence photo). Always forwarded as an attachment when sending, and
@@ -73,7 +68,7 @@ function ClaimMessageScreen() {
   const receipt = itemId
     ? Object.values(documentsRecord ?? {})
         .filter((doc) => doc.item_id === itemId)
-        .sort((a, b) => b.created_at.localeCompare(a.created_at))[0]
+        .sort((a, b) => (b.created_at ?? "").localeCompare(a.created_at ?? ""))[0]
     : undefined;
 
   useEffect(() => {

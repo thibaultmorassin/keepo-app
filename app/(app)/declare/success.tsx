@@ -2,12 +2,12 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Confetti } from "@/components/ui/confetti";
 import { Icon } from "@/components/ui/Icon";
+import { useSession } from "@/contexts/session";
 import { color } from "@/theme/tokens";
-import { Text, View } from "@/tw";
+import { SafeAreaView, Text, View } from "@/tw";
 import { Animated } from "@/tw/animated";
-import type { Tables } from "@/utils/database.types";
 import { haptics } from "@/utils/haptics";
-import { items$ } from "@/utils/SupaLegend";
+import { ownedItems } from "@/utils/ownership";
 import { observer } from "@legendapp/state/react";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef } from "react";
@@ -21,23 +21,17 @@ import {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
 
 /** How long the celebration holds before it takes itself off screen. */
 const SUCCESS_HOLD_MS = 5000;
 const STAGGER = 60;
 
 function ClaimSuccessScreen() {
-  const insets = useSafeAreaInsets();
   const reduceMotion = useReducedMotion();
+  const { session } = useSession();
   const { itemId } = useLocalSearchParams<{ itemId?: string }>();
 
-  const itemsRecord = items$.get() as
-    | Record<string, Tables<"items">>
-    | undefined;
+  const itemsRecord = ownedItems(session?.user.id);
   const item = itemId ? itemsRecord?.[itemId] : undefined;
 
   const dismissed = useRef(false);

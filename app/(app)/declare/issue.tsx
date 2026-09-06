@@ -4,64 +4,35 @@ import { Card } from "@/components/ui/Card";
 import { Icon } from "@/components/ui/Icon";
 import { OptionRow } from "@/components/ui/OptionRow";
 import { useClaimDraft } from "@/contexts/claimDraft";
+import { useSession } from "@/contexts/session";
 import { color } from "@/theme/tokens";
 import { ScrollView, Text, View } from "@/tw";
 import { ISSUES } from "@/utils/claims";
-import type { Tables } from "@/utils/database.types";
 import { haptics } from "@/utils/haptics";
-import { items$ } from "@/utils/SupaLegend";
+import { ownedItems } from "@/utils/ownership";
 import { observer } from "@legendapp/state/react";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 function ClaimIssueScreen() {
   const insets = useSafeAreaInsets();
+  const { session } = useSession();
   const { itemId: paramItemId } = useLocalSearchParams<{ itemId?: string }>();
   const { itemId, setItemId, issue, setIssue } = useClaimDraft();
-
-  // An issue already chosen for this exact item, captured once at this
-  // screen's first mount — resuming past this step. Deliberately not the
-  // live `issue`: after the user changes it below on this same still-mounted
-  // instance (e.g. coming back here via the back button), this must stay
-  // put, or the guard below would keep skipping forward and trap them.
-  // Also deliberately null when a *different* item was just passed in via
-  // `itemId` param — the sync effect below is about to reset `issue` to
-  // null for that item anyway, so trusting the pre-switch value here would
-  // wrongly skip forward with stale facts.
-  const [resumeIssue] = useState(() =>
-    !paramItemId || paramItemId === itemId ? issue : null,
-  );
-  const [isInitializing, setIsInitializing] = useState(true);
 
   useEffect(() => {
     if (paramItemId && paramItemId !== itemId) setItemId(paramItemId);
   }, [paramItemId, itemId, setItemId]);
 
-  useEffect(() => {
-    if (resumeIssue) router.push("/declare/details");
-    setIsInitializing(false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const itemsRecord = items$.get() as
-    | Record<string, Tables<"items">>
-    | undefined;
+  const itemsRecord = ownedItems(session?.user.id);
   const item = itemId ? itemsRecord?.[itemId] : undefined;
 
   const handleContinue = useCallback(() => {
     haptics.light();
     router.push("/declare/details");
   }, []);
-
-  // About to redirect away (see the effect above) — render nothing rather
-  // than flash the issue picker for a frame. Only true for the initial
-  // render, never again once mounted, so a later back-visit shows this
-  // screen for real.
-  if (isInitializing && resumeIssue) {
-    return <View className="flex-1 bg-app" />;
-  }
 
   return (
     <View className="flex-1 bg-app">
