@@ -8,7 +8,7 @@ import { View } from "@/tw";
 export default function TabBarGroupLayout() {
   return (
     <View className="flex-1">
-      <Stack screenOptions={{ headerTransparent: true, headerTitle: "" }}>
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="settings" />
       </Stack>

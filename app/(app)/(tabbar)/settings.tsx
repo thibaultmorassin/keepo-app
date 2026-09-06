@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { ComingSoonSheet } from "@/components/ui/ComingSoonSheet";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { ScreenBackButton } from "@/components/ui/ScreenBackButton";
 import { SettingsRow } from "@/components/ui/SettingsRow";
 import { Switch } from "@/components/ui/Switch";
 import { useSession } from "@/contexts/session";
@@ -289,6 +290,8 @@ export default function SettingsScreen() {
         label={comingSoonLabel ?? undefined}
         onClose={() => setComingSoonLabel(null)}
       />
+
+      <ScreenBackButton />
     </View>
   );
 }
