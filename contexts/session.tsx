@@ -1,3 +1,4 @@
+import { updateProfilePrefs } from "@/utils/profile";
 import { clearSyncedPersistence } from "@/utils/SupaLegend";
 import { supabase } from "@/utils/supabase";
 import type { AuthError, Session } from "@supabase/supabase-js";
@@ -19,13 +20,20 @@ type AuthResult = {
 type EmailVerificationResult = {
   error: string | null;
   verified: boolean;
+  /** The now-authenticated user's id, once `verified` — lets the caller finish writing the profile row created at signup. */
+  userId?: string;
 };
 
 type SessionContextValue = {
   session: Session | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<AuthResult>;
-  signUp: (email: string, password: string) => Promise<AuthResult>;
+  signUp: (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+  ) => Promise<AuthResult>;
   signOut: () => Promise<AuthResult>;
   checkEmailVerified: (
     email: string,
@@ -93,21 +101,52 @@ export function SessionProvider({ children }: PropsWithChildren) {
     return { error: mapAuthError(error) };
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
-    if (error) {
-      return { error: mapAuthError(error) };
-    }
+  const signUp = useCallback(
+    async (
+      email: string,
+      password: string,
+      firstName: string,
+      lastName: string,
+    ) => {
+      // `options.data` lands in `auth.users.raw_user_meta_data` — kept as a
+      // backup for whatever out-of-band trigger seeds `profiles` on signup.
+      // The explicit `updateProfilePrefs` below is the one we can actually
+      // verify, so it's the source of truth whenever a session comes back
+      // immediately (email confirmation disabled).
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { first_name: firstName, last_name: lastName },
+        },
+      });
+      if (error) {
+        return { error: mapAuthError(error) };
+      }
 
-    if (!data.session) {
-      return {
-        error: null,
-        needsEmailConfirmation: true,
-      };
-    }
+      // Signing up with an email that's already registered AND confirmed
+      // doesn't come back as an error on a project with "Confirm email" on
+      // — Supabase returns a 200 with a user that has no identities, so it
+      // can't be used to tell an attacker which emails exist. Auto-confirm
+      // projects instead surface this as a normal "already registered"
+      // error, already handled by `mapAuthError` above.
+      if (data.user && data.user.identities?.length === 0) {
+        return { error: "Un compte existe déjà avec cet email." };
+      }
 
-    return { error: null };
-  }, []);
+      if (!data.session) {
+        return {
+          error: null,
+          needsEmailConfirmation: true,
+        };
+      }
+
+      await updateProfilePrefs(data.session.user.id, { firstName, lastName });
+
+      return { error: null };
+    },
+    [],
+  );
 
   const signOut = useCallback(async () => {
     await clearSyncedPersistence();
@@ -130,7 +169,11 @@ export function SessionProvider({ children }: PropsWithChildren) {
         return { error: mapAuthError(error), verified: false };
       }
 
-      return { error: null, verified: !!data.session };
+      return {
+        error: null,
+        verified: !!data.session,
+        userId: data.session?.user.id,
+      };
     },
     [],
   );

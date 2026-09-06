@@ -6,6 +6,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { useSession } from "@/contexts/session";
 import { color } from "@/theme/tokens";
 import { SafeAreaView, ScrollView, Text, View } from "@/tw";
+import { updateProfilePrefs } from "@/utils/profile";
 import { router } from "expo-router";
 import { useState } from "react";
 import { KeyboardAvoidingView, Platform } from "react-native";
@@ -15,6 +16,8 @@ const MIN_PASSWORD_LENGTH = 8;
 export default function SignupScreen() {
   const { signUp, checkEmailVerified } = useSession();
 
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +29,10 @@ export default function SignupScreen() {
   const passwordTooShort =
     password.length > 0 && password.length < MIN_PASSWORD_LENGTH;
   const canSubmit =
-    email.trim().length > 0 && password.length >= MIN_PASSWORD_LENGTH;
+    firstName.trim().length > 0 &&
+    lastName.trim().length > 0 &&
+    email.trim().length > 0 &&
+    password.length >= MIN_PASSWORD_LENGTH;
 
   async function handleSubmit() {
     if (!canSubmit || loading) return;
@@ -35,7 +41,12 @@ export default function SignupScreen() {
     setError(null);
     setNeedsEmailConfirmation(false);
 
-    const result = await signUp(email.trim(), password);
+    const result = await signUp(
+      email.trim(),
+      password,
+      firstName.trim(),
+      lastName.trim(),
+    );
     if (result.error) {
       setError(result.error);
     } else if (result.needsEmailConfirmation) {
@@ -57,6 +68,13 @@ export default function SignupScreen() {
       setError(result.error);
     } else if (!result.verified) {
       setPendingVerification(true);
+    } else if (result.userId) {
+      // First authenticated moment for this account — the signup form's
+      // names haven't landed on `profiles` until now.
+      await updateProfilePrefs(result.userId, {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+      });
     }
 
     setRefreshing(false);
@@ -107,6 +125,28 @@ export default function SignupScreen() {
             </View>
           ) : (
             <Card tone="outline" className="gap-4">
+              <View className="flex-row gap-2.5">
+                <Field
+                  label="Prénom"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  placeholder="Marie"
+                  autoCapitalize="words"
+                  autoComplete="given-name"
+                  textContentType="givenName"
+                  className="min-w-0 flex-1"
+                />
+                <Field
+                  label="Nom"
+                  value={lastName}
+                  onChangeText={setLastName}
+                  placeholder="Dupont"
+                  autoCapitalize="words"
+                  autoComplete="family-name"
+                  textContentType="familyName"
+                  className="min-w-0 flex-1"
+                />
+              </View>
               <Field
                 label="Email"
                 value={email}
