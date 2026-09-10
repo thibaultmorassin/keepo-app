@@ -84,6 +84,22 @@ export const itemDocuments$ = observable(
   }),
 );
 
+const PERSIST_TABLES = ["items", "claims", "item_documents"] as const;
+
+/**
+ * `clearPersist` is only attached after a store's persist plugin has
+ * initialized — which happens the first time that store is observed. Calling
+ * it on the sync-state observable itself is also wrong: when the fn is still
+ * unset, Legend State hands back a child observable, and invoking that throws
+ * `TypeError: Object is not a function`. Peek the raw fn and skip stores
+ * that were never activated this session.
+ */
+function clearStorePersist(store$: Parameters<typeof syncState>[0]) {
+  const { clearPersist, resetPersistence } = syncState(store$).peek();
+  const clear = clearPersist ?? resetPersistence;
+  return typeof clear === "function" ? clear() : Promise.resolve();
+}
+
 /**
  * Wipes the on-disk AsyncStorage cache for all three stores on sign-out.
  *
@@ -98,11 +114,18 @@ export const itemDocuments$ = observable(
  * these stores through `utils/ownership.ts`, which filters by the
  * currently-signed-in user, rather than trusting this to have fully reset
  * the world.
+ *
+ * `itemDocuments$` is only observed on item detail, so a settings-only
+ * session never attaches `clearPersist`. The AsyncStorage remove below is
+ * the fallback that still drops that table (and metadata) from disk.
  */
 export async function clearSyncedPersistence() {
   await Promise.all([
-    syncState(items$).clearPersist(),
-    syncState(claims$).clearPersist(),
-    syncState(itemDocuments$).clearPersist(),
+    clearStorePersist(items$),
+    clearStorePersist(claims$),
+    clearStorePersist(itemDocuments$),
+    AsyncStorage.multiRemove(
+      PERSIST_TABLES.flatMap((name) => [name, `${name}__m`]),
+    ),
   ]);
 }
