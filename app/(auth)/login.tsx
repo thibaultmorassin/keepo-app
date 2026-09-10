@@ -1,6 +1,3 @@
-import { useState } from "react";
-import { router } from "expo-router";
-import { KeyboardAvoidingView, Platform } from "react-native";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Field } from "@/components/ui/Field";
@@ -9,6 +6,9 @@ import { IconButton } from "@/components/ui/IconButton";
 import { useSession } from "@/contexts/session";
 import { color } from "@/theme/tokens";
 import { SafeAreaView, ScrollView, Text, View } from "@/tw";
+import { router } from "expo-router";
+import { useState } from "react";
+import { KeyboardAvoidingView, Platform } from "react-native";
 
 export default function LoginScreen() {
   const { signIn } = useSession();
@@ -56,7 +56,9 @@ export default function LoginScreen() {
 
           <View className="gap-1.5">
             <Text className="type-micro text-secondary">Connexion</Text>
-            <Text className="type-display text-primary">Ravi de vous revoir</Text>
+            <Text className="type-display text-primary">
+              Ravi de vous revoir
+            </Text>
           </View>
 
           <Card tone="outline" className="gap-4">
@@ -84,7 +86,7 @@ export default function LoginScreen() {
 
         <View className="gap-2 px-gutter pb-2">
           {error ? (
-            <View className="rounded-[14px] bg-claim-bg px-4 py-3">
+            <View className="rounded-input bg-claim-bg px-4 py-3">
               <Text className="type-body text-claim-fg">{error}</Text>
             </View>
           ) : null}
@@ -102,7 +104,7 @@ export default function LoginScreen() {
             variant="ghost"
             size="lg"
             full
-            onPress={() => router.push("/signup")}
+            onPress={() => router.push("/onboarding")}
           >
             Pas encore de compte ? Créer un compte
           </Button>
@@ -111,4 +113,3 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
-

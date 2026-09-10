@@ -26,7 +26,9 @@ export default function LandingScreen() {
       >
         <View className="gap-1.5">
           <Text className="type-micro text-secondary">Keepo</Text>
-          <Text className="type-display text-primary">Vos garanties, au chaud</Text>
+          <Text className="type-display text-primary">
+            Vos garanties, au chaud
+          </Text>
           <Text className="type-body mt-1 text-secondary">
             On garde vos reçus, on surveille les dates, et on écrit la
             réclamation quand ça casse.
@@ -34,9 +36,11 @@ export default function LandingScreen() {
         </View>
 
         <Card tone="brand" size="hero" className="relative overflow-hidden">
-          <View className="absolute -right-[46px] -top-[46px] size-[170px] rounded-pill bg-on-dark/12" />
+          <View className="absolute -right-11.5 -top-11.5 size-42.5 rounded-pill bg-on-dark/12" />
           <View className="relative gap-1.5">
-            <Text className="type-micro text-on-dark opacity-[0.82]">Votre tranquillité</Text>
+            <Text className="type-micro text-on-dark opacity-[0.82]">
+              Votre tranquillité
+            </Text>
             <Text className="type-title font-display-bold text-[24px]/[28px] text-on-dark">
               Tous vos achats,{"\n"}un seul endroit
             </Text>
@@ -49,7 +53,10 @@ export default function LandingScreen() {
 
         <View className="gap-list">
           {VALUE_ROWS.map((row) => (
-            <View key={row.label} className="flex-row items-center gap-3 rounded-tile bg-card px-4 py-3.5 shadow-sm">
+            <View
+              key={row.label}
+              className="flex-row items-center gap-3 rounded-tile bg-card px-4 py-3.5 shadow-sm"
+            >
               <View className="size-10 items-center justify-center rounded-full bg-brand-tint">
                 <Icon name={row.icon} size={20} color={color.brandStrong} />
               </View>
@@ -79,7 +86,7 @@ export default function LandingScreen() {
           variant="primary"
           size="lg"
           full
-          onPress={() => router.push("/signup")}
+          onPress={() => router.push("/onboarding")}
         >
           Créer un compte
         </Button>
@@ -95,4 +102,3 @@ export default function LandingScreen() {
     </View>
   );
 }
-
