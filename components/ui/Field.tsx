@@ -63,10 +63,10 @@ export function Field({
           className={clsx(
             "w-full rounded-input border border-line bg-card px-3.5 py-3 font-sans text-[14.5px] text-primary",
             // the focus ring is 2px, so shed a pixel of padding to hold size
-            focused && "border-2 border-green-200 px-3.25 py-2.75",
+            focused && "border-green-200",
             error && "border-claim-fg",
             (secureTextEntry || suffix) && "pr-12",
-            multiline && "min-h-[110px] py-3",
+            multiline && "min-h-27.5 py-3",
           )}
           {...inputProps}
         />
