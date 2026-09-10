@@ -15,15 +15,18 @@ type OptionRowProps = {
   description?: string;
   selected: boolean;
   onSelect: () => void;
+  /** "radio" (default) for a single-select group; "checkbox" when several rows can be selected at once. */
+  role?: "radio" | "checkbox";
   className?: string;
 };
 
-/** A single-select radio row — a group of these forms one choice. */
+/** A single-select radio row by default — a group of these forms one choice. Pass `role="checkbox"` for a multi-select group instead. */
 export function OptionRow({
   label,
   description,
   selected,
   onSelect,
+  role = "radio",
   className,
 }: OptionRowProps) {
   const scale = useSharedValue(1);
@@ -34,7 +37,7 @@ export function OptionRow({
 
   return (
     <Animated.Pressable
-      accessibilityRole="radio"
+      accessibilityRole={role}
       accessibilityState={{ checked: selected }}
       onPress={() => {
         haptics.light();
